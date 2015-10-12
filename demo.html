@@ -1,0 +1,47 @@
+<html>
+<head>
+	<title>Leaflet Cloudburst Example</title>
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
+  <style>
+    #map {
+      width:100%;
+      height:100%;
+    }
+  </style>
+</head>
+<body>
+	<div id="map"></div>
+
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
+	<script>
+
+		var map = L.map('map').setView([0,0], 4);
+
+    // TODO: test with hardcoded url
+    // TODO: function generate urls
+    // TODO: controls for layers and time
+    // TODO: time-slider
+    var host = 'http://localhost:6060/tile/'
+    var renderer = 'mpl/'
+    var layer = 'ncep_hs/'
+    var instance = '20150922_12z/'
+    var index = '10/'
+    var extension = '.png' // TODO this will eventually depend on the renderer
+    var tileurl = host + renderer + layer + instance + index + '{z}/{x}/{y}' + extension
+    console.log(tileurl);
+
+		L.tileLayer(
+      tileurl,
+      {
+  			maxZoom: 17,
+  			attribution: '&copy; <a href="http://www.metocean.co.nz/">MetOcean Solutions</a>',
+      }
+    ).addTo(map);
+
+	</script>
+</body>
+</html>
