@@ -17,5 +17,5 @@ class Cloudburst
       jsonpCallback: 'read_layers_callback'
       dataType: 'jsonp'
       success: (data, status, response) ->
-        if cb and status is 'success'
+        if cb? and status is 'success'
           cb(data)
