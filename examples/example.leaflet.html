@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Leaflet Cloudburst - MetOcean</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
+		<!-- jQuery -->
+		<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+		<!-- Leaflet -->
+		<script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+		<style>
+		html, body {
+			height:100%;
+		}
+		#map {
+			height:650px;
+		}
+		.scrollable-menu {
+	    height: auto;
+	    max-height: 200px;
+	    overflow-x: hidden;
+			text-align:center;
+		}
+	  </style>
+		<script src="../src/cloudburst.leaflet.tilelayer.js"></script>
+		<script src="../src/cloudburst.js"></script>
+	</head>
+	<body>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-md-12" id="map"></div>
+			</div>
+			<div class="row">
+				<div class="col-sm-4 btn-group dropup">
+				  <button type="button" class="btn btn-default">Layer</button>
+				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				    <span class="caret"></span>
+				  </button>
+				  <ul class="dropdown-menu scrollable-menu" id="layers"></ul>
+				</div>
+				<div class="col-sm-4 btn-group dropup">
+				  <button type="button" class="btn btn-default">Instance</button>
+				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				    <span class="caret"></span>
+				  </button>
+				  <ul class="dropdown-menu scrollable-menu" id="instances"></ul>
+				</div>
+				<div class="col-sm-4 btn-group dropup">
+				  <button type="button" class="btn btn-default">Index</button>
+				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				    <span class="caret"></span>
+				    <!-- <span class="sr-only">Toggle Dropdown</span> -->
+				  </button>
+				  <ul class="dropdown-menu scrollable-menu" id="indexes"></ul>
+				</div>
+			</div>
+		</div>
+		<script src="example.leaflet.js"></script>
+	</body>
+</html>
