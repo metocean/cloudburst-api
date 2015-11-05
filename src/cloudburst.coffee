@@ -18,4 +18,4 @@ class Cloudburst
       dataType: 'jsonp'
       success: (data, status, response) ->
         if cb? and status is 'success'
-          cb(data)
+          cb(data, @url)

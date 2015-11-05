@@ -18,12 +18,18 @@
 		}
 		#map {
 			height:650px;
+			margin-left:30px;
+			margin-right:30px;
+			margin-top:10px;
+			margin-bottom:10px;
 		}
+		/*.dropup {
+			margin-left:20px;
+		}*/
 		.scrollable-menu {
 	    height: auto;
 	    max-height: 200px;
 	    overflow-x: hidden;
-			text-align:center;
 		}
 	  </style>
 		<script src="../src/cloudburst.leaflet.tilelayer.js"></script>
@@ -35,30 +41,22 @@
 				<div class="col-md-12" id="map"></div>
 			</div>
 			<div class="row">
-				<div class="col-sm-4 btn-group dropup">
-				  <button type="button" class="btn btn-default">Layer</button>
-				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				    <span class="caret"></span>
-				  </button>
-				  <ul class="dropdown-menu scrollable-menu" id="layers"></ul>
+				<div class="col-md-4 btn-group dropup">
+					<select class="btn btn-default btn-md" id="layers"></select>
 				</div>
-				<div class="col-sm-4 btn-group dropup">
-				  <button type="button" class="btn btn-default">Instance</button>
-				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				    <span class="caret"></span>
-				  </button>
-				  <ul class="dropdown-menu scrollable-menu" id="instances"></ul>
+				<div class="col-md-4 btn-group dropup">
+					<select class="btn btn-default btn-md" id="instances"></select>
 				</div>
-				<div class="col-sm-4 btn-group dropup">
-				  <button type="button" class="btn btn-default">Index</button>
-				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				    <span class="caret"></span>
-				    <!-- <span class="sr-only">Toggle Dropdown</span> -->
-				  </button>
-				  <ul class="dropdown-menu scrollable-menu" id="indexes"></ul>
+				<div class="col-md-4 btn-group pull-right">
+					<button type="button" class="btn btn-default btn-md disabled" id="step-backward">
+						<span class="glyphicon glyphicon-step-backward"></span>
+					</button>
+					<select class="btn btn-default btn-md" id="indexes"></select>
+					<button type="button" class="btn btn-default btn-md" id="step-forward">
+						<span class="glyphicon glyphicon-step-forward"></span>
+					</button>
 				</div>
 			</div>
-		</div>
 		<script src="example.leaflet.js"></script>
 	</body>
 </html>

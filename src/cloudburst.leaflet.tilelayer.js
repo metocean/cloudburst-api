@@ -14,8 +14,8 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     if (!config.layers) {
       return;
     }
-    this._config = config;
     this._host = serverurl;
+    this._config = config;
     this._layers = this.getLayers();
     this.setLayer(this._layers[0], false);
     this.setInstance(this.getInstances()[0], false);
@@ -26,9 +26,24 @@ L.CloudburstTileLayer = L.TileLayer.extend({
   getConfig: function() {
     return this._config;
   },
-  getLayers: function() {
+  getLayers: function(asObj) {
+    var lyr, lyrs;
     if (this._config != null) {
-      return Object.keys(this._config.layers);
+      if ((asObj == null) || !asObj) {
+        lyrs = Object.keys(this._config.layers);
+      } else {
+        lyrs = (function() {
+          var j, len, ref, results;
+          ref = Object.keys(this._config.layers);
+          results = [];
+          for (j = 0, len = ref.length; j < len; j++) {
+            lyr = ref[j];
+            results.push([lyr, this._config.layers[lyr]]);
+          }
+          return results;
+        }).call(this);
+      }
+      return lyrs;
     }
   },
   setLayer: function(layer, noRedraw) {
@@ -62,27 +77,26 @@ L.CloudburstTileLayer = L.TileLayer.extend({
   getInstance: function() {
     return this._instance;
   },
-  getTindexes: function(named) {
+  getTindexes: function(asObj) {
     var i, tindexes;
     if ((this._instance != null) && (this._layer != null)) {
       tindexes = Object.keys(this._config.layers[this._layer].instances[this._instance].indexes);
-    }
-    if ((named != null) && named) {
-      tindexes = (function() {
-        var j, len, results;
-        results = [];
-        for (j = 0, len = tindexes.length; j < len; j++) {
-          i = tindexes[j];
-          results.push(this._config.layers[this._layer].instances[this._instance].indexes[i]);
-        }
-        return results;
-      }).call(this);
+      if ((asObj != null) && asObj) {
+        tindexes = (function() {
+          var j, len, results;
+          results = [];
+          for (j = 0, len = tindexes.length; j < len; j++) {
+            i = tindexes[j];
+            results.push([i, this._config.layers[this._layer].instances[this._instance].indexes[i]]);
+          }
+          return results;
+        }).call(this);
+      }
     }
     return tindexes;
   },
   setTindex: function(tindex, noRedraw) {
     var ref;
-    console.log(noRedraw);
     if (ref = tindex.toString(), indexOf.call(this.getTindexes(), ref) >= 0) {
       this._tindex = tindex.toString();
       if ((noRedraw == null) || !noRedraw) {
@@ -106,18 +120,16 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     return this;
   },
   back: function(noRedraw) {
-    var index;
-    index = this._config.layers.indexOf(this._tindex);
-    index--;
-    index %= this._config.layers.length;
-    return this.setLayer(this._config.layers[index], noRedraw);
+    if (this._tindex != null) {
+      if (parseInt(this._tindex) > 0) {
+        return this.setTindex(Math.max(parseInt(this._tindex) - 1, 0), noRedraw);
+      }
+    }
   },
   forward: function(noRedraw) {
     if (this._tindex != null) {
       if (parseInt(this._tindex) < this.getTindexes().length - 1) {
         return this.setTindex(Math.min(parseInt(this._tindex) + 1, this.getTindexes().length - 1), noRedraw);
-      } else {
-        return this.setTindex(0);
       }
     }
   },
