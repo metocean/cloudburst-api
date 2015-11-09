@@ -46,7 +46,6 @@ sample_layer_control = (json) ->
     $("##{container_id}").find('option').remove()
 
   appendElements = (container_id, element, content, title) ->
-    console.log "appendElements", container_id, element, content, title
     el = document.createElement(element)
     el.innerHTML = content
     if title?
@@ -96,13 +95,6 @@ sample_layer_control = (json) ->
       $('#step-forward').removeClass('disabled')
     $('#step-backward').removeClass('disabled')
     $('#indexes').prop("selectedIndex", newval)
-
-
-  # # We can dynamically update the key by calling back, forward or setting a key directly.
-  # setInterval ->
-  #   # cloudburstTileLayer.forward(yes)
-  #   console.log cloudburstTileLayer.getLayers(yes)
-  # , 5000
 
 get_host = ->
   'http://localhost:6060'

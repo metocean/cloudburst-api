@@ -47,12 +47,10 @@ sample_layer_control = function(json) {
   cloudburstTileLayer = get_cloudburst_tileLayer(json);
   make_map([get_supplementary_tileLayer(), cloudburstTileLayer]);
   removeOptions = function(container_id) {
-    console.log("$(#" + container_id + ").find('option').remove()");
     return $("#" + container_id).find('option').remove();
   };
   appendElements = function(container_id, element, content, title) {
     var el;
-    console.log("appendElements", container_id, element, content, title);
     el = document.createElement(element);
     el.innerHTML = content;
     if (title != null) {
