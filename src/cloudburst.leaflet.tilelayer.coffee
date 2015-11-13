@@ -47,6 +47,26 @@ L.CloudburstTileLayer = L.TileLayer.extend
   getLayer: ->
     @_layer
 
+  getLayerMetadata: ->
+    if @_layer?
+      @_config.layers[@_layer].meta
+
+  getLayerDescription: ->
+    if @_layer?
+      @getLayerMetadata().description
+
+  getLayerName: ->
+    if @_layer?
+      @getLayerMetadata().name
+
+  getLayerUnits: ->
+    if @_layer?
+      @getLayerMetadata().units
+
+  getLayerPlotDefinitions: ->
+    if @_layer
+      @_config.layers[@_layer].plot_defs
+
   getInstances: ->
     if @_layer?
       Object.keys(@_config.layers[@_layer].instances)

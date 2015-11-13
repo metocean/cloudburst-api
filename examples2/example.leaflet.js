@@ -55,13 +55,24 @@ sample_add_random_layer = function(json) {
 };
 
 sample_layer_control = function(json) {
-  var appendElements, cloudburstTileLayer, do_appendElements, make_slider, removeOptions;
+  var appendElements, cloudburstTileLayer, do_appendElements, get_opacity_slider, get_remove_layer_button, make_opacity_slider, map, removeOptions;
+  HTMLElement.prototype.removeClass = function(remove) {
+    var classes, i, j, newClassName, ref;
+    classes = this.className.split(" ");
+    newClassName = '';
+    for (i = j = 0, ref = classes.length; j < ref; i = j += 1) {
+      if (classes[i] !== remove) {
+        newClassName += classes[i] + " ";
+      }
+    }
+    return this.className = newClassName;
+  };
   cloudburstTileLayer = get_cloudburst_tileLayer(json);
-  make_map([get_supplementary_tileLayer(), cloudburstTileLayer]);
+  map = make_map([get_supplementary_tileLayer()]);
   removeOptions = function(container_id) {
     return $("#" + container_id).find('option').remove();
   };
-  appendElements = function(container_id, element, content, title) {
+  appendElements = function(container_id, element, content, title, className, role, id) {
     var el;
     el = document.createElement(element);
     el.innerHTML = content;
@@ -89,63 +100,59 @@ sample_layer_control = function(json) {
       }
     }
   };
-  do_appendElements(true, true, true);
-  $('#layers').change(function() {
-    cloudburstTileLayer.setLayer($('option:selected', this).attr('title'));
-    return do_appendElements(false, true, true);
-  });
-  $('#instances').change(function() {
-    cloudburstTileLayer.setInstance($(this).val());
-    return do_appendElements(false, false, true);
-  });
-  $('#step-backward').click(function() {
-    var newval;
-    cloudburstTileLayer.back();
-    newval = parseInt(cloudburstTileLayer.getTindex());
-    if (newval === 0) {
-      $('#step-backward').addClass('disabled');
-    } else {
-      $('#step-backward').removeClass('disabled');
-    }
-    $('#step-forward').removeClass('disabled');
-    return $('#indexes').prop("selectedIndex", newval);
-  });
-  $('#step-forward').click(function() {
-    var newval;
-    cloudburstTileLayer.forward();
-    newval = parseInt(cloudburstTileLayer.getTindex());
-    if (newval === cloudburstTileLayer.getTindexes().length - 1) {
-      $('#step-forward').addClass('disabled');
-    } else {
-      $('#step-forward').removeClass('disabled');
-    }
-    $('#step-backward').removeClass('disabled');
-    return $('#indexes').prop("selectedIndex", newval);
-  });
-  make_slider = function() {
-    var s, t;
-    return s = $('#ex1').slider({
-      ticks: (function() {
-        var j, len, ref, results;
-        ref = cloudburstTileLayer.getTindexes(true);
-        results = [];
-        for (j = 0, len = ref.length; j < len; j++) {
-          t = ref[j];
-          results.push(parseInt(t[0]));
-        }
-        return results;
-      })(),
-      tick_positions: cloudburstTileLayer.getTindexesAsPercetagePositions(),
-      ticks_snap_bounds: 1,
-      value: parseInt(cloudburstTileLayer.getTindex()),
-      formatter: function(value) {
-        return cloudburstTileLayer.getTindexes(true)[value][1];
-      }
-    }).on('slideStop', function() {
-      return cloudburstTileLayer.setTindex(s.val());
+  get_remove_layer_button = function(id) {
+    '<button id="ncep_mslp-remove" class="btn btn-warning" type="button">\n  <span class="glyphicon glyphicon-minus"></span>\n</button>';
+    var btn, span;
+    btn = document.createElement('button');
+    span = document.createElement('span');
+    span.setAttribute('class', 'glyphicon glyphicon-minus');
+    btn.innerHTML = span.outerHTML;
+    btn.setAttribute('type', 'button');
+    btn.setAttribute('class', 'btn btn-warning btn-xs');
+    btn.setAttribute('id', id);
+    return btn.outerHTML;
+  };
+  get_opacity_slider = function(slider_id) {
+    var input;
+    input = document.createElement('input');
+    input.setAttribute('id', slider_id);
+    input.setAttribute('data-slider-id', slider_id);
+    input.setAttribute('type', 'text');
+    return input.outerHTML;
+  };
+  make_opacity_slider = function(slider_id, layer) {
+    var s, step, value;
+    return s = $("#" + slider_id).slider({
+      min: 0,
+      max: 100
+    }, value = 100, step = 10).on('slideStop', function() {
+      return layer.setOpacity(s.val() / 100);
     });
   };
-  return make_slider();
+  do_appendElements(true, true, true);
+  document.getElementById("modal-layer-info").innerHTML = cloudburstTileLayer.getLayerDescription();
+  $('#layers').change(function() {
+    var candidateLayer;
+    candidateLayer = $.extend({}, cloudburstTileLayer);
+    candidateLayer.setLayer($('option:selected', this).attr('title'));
+    do_appendElements(false, true, true);
+    document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription();
+    return document.getElementById("modal-layer-info").removeClass('hide');
+  });
+  return $('#modal-confirm-add').click(function() {
+    var candidateLayer, layerTitle, row, rowi;
+    candidateLayer = $.extend({}, cloudburstTileLayer);
+    layerTitle = $('option:selected', $('#layers')).attr('title');
+    candidateLayer.setLayer(layerTitle);
+    candidateLayer.addTo(map);
+    row = document.getElementById("layer-table").insertRow(-1);
+    rowi = document.getElementById("layer-table").rows.length;
+    row.insertCell(0).innerHTML = get_remove_layer_button('remove-layer-' + rowi);
+    row.insertCell(1).innerHTML = candidateLayer.getLayerName() + '<br>' + candidateLayer.getInstance();
+    row.insertCell(2).innerHTML = get_opacity_slider('opacity-slider-' + rowi);
+    row.insertCell(3).innerHTML = 'TODO!';
+    return make_opacity_slider('opacity-slider-' + rowi, candidateLayer);
+  });
 };
 
 get_host = function() {

@@ -58,6 +58,31 @@ L.CloudburstTileLayer = L.TileLayer.extend({
   getLayer: function() {
     return this._layer;
   },
+  getLayerMetadata: function() {
+    if (this._layer != null) {
+      return this._config.layers[this._layer].meta;
+    }
+  },
+  getLayerDescription: function() {
+    if (this._layer != null) {
+      return this.getLayerMetadata().description;
+    }
+  },
+  getLayerName: function() {
+    if (this._layer != null) {
+      return this.getLayerMetadata().name;
+    }
+  },
+  getLayerUnits: function() {
+    if (this._layer != null) {
+      return this.getLayerMetadata().units;
+    }
+  },
+  getLayerPlotDefinitions: function() {
+    if (this._layer) {
+      return this._config.layers[this._layer].plot_defs;
+    }
+  },
   getInstances: function() {
     if (this._layer != null) {
       return Object.keys(this._config.layers[this._layer].instances);
