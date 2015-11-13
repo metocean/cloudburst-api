@@ -1,4 +1,4 @@
-var callback, cloudburst, get_cloudburst_tileLayer, get_host, get_supplementary_tileLayer, make_map, sample_add_random_layer, sample_layer_control;
+var callback, cloudburst, get_cloudburst_tileLayer, get_host, get_supplementary_tileLayer, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers;
 
 make_map = function(layers, mapdiv) {
   var map;
@@ -12,13 +12,15 @@ make_map = function(layers, mapdiv) {
   return map;
 };
 
-get_cloudburst_tileLayer = function(json) {
+get_cloudburst_tileLayer = function(json, opacity, zIndex) {
   var cloudburstTileLayer;
   cloudburstTileLayer = L.cloudburstTileLayer(get_host(), json, {
     maxZoom: 8,
     maxNativeZoom: 9,
     reuseTiles: true,
-    detectRetina: true
+    detectRetina: true,
+    opacity: opacity != null ? opacity : 1.0,
+    zIndex: zIndex != null ? zIndex : null
   });
   return cloudburstTileLayer;
 };
@@ -33,6 +35,17 @@ get_supplementary_tileLayer = function() {
   return supplementary;
 };
 
+sample_stack_n_layers = function(json) {
+  var cloudburstTileLayer, i, j, layers;
+  layers = [get_supplementary_tileLayer()];
+  for (i = j = 0; j < 3; i = j += 1) {
+    cloudburstTileLayer = get_cloudburst_tileLayer(json, 0.6);
+    cloudburstTileLayer.setLayer(Object.keys(json.layers)[i]);
+    layers.push(cloudburstTileLayer);
+  }
+  return make_map(layers);
+};
+
 sample_add_random_layer = function(json) {
   var cloudburstTileLayer, randomindex;
   cloudburstTileLayer = get_cloudburst_tileLayer(json);
@@ -42,7 +55,7 @@ sample_add_random_layer = function(json) {
 };
 
 sample_layer_control = function(json) {
-  var appendElements, cloudburstTileLayer, do_appendElements, make_slider, removeOptions, s, t;
+  var appendElements, cloudburstTileLayer, do_appendElements, make_slider, removeOptions;
   cloudburstTileLayer = get_cloudburst_tileLayer(json);
   make_map([get_supplementary_tileLayer(), cloudburstTileLayer]);
   removeOptions = function(container_id) {
@@ -58,29 +71,21 @@ sample_layer_control = function(json) {
     document.getElementById(container_id).appendChild(el);
   };
   do_appendElements = function(refresh_layers, refresh_instances, refresh_tindexes) {
-    var i, j, k, len, len1, len2, lyr, ref, ref1, ref2;
+    var j, k, len, len1, lyr, ref, ref1;
     if ((refresh_layers == null) || refresh_layers) {
       removeOptions('layers');
       ref = cloudburstTileLayer.getLayers(true);
-      for (i = 0, len = ref.length; i < len; i++) {
-        lyr = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        lyr = ref[j];
         appendElements('layers', 'option', lyr[1].meta.name, lyr[0]);
       }
     }
     if ((refresh_instances == null) || refresh_instances) {
       removeOptions('instances');
       ref1 = cloudburstTileLayer.getInstances();
-      for (j = 0, len1 = ref1.length; j < len1; j++) {
-        lyr = ref1[j];
+      for (k = 0, len1 = ref1.length; k < len1; k++) {
+        lyr = ref1[k];
         appendElements('instances', 'option', lyr);
-      }
-    }
-    if ((refresh_tindexes == null) || refresh_tindexes) {
-      removeOptions('indexes');
-      ref2 = cloudburstTileLayer.getTindexes(true);
-      for (k = 0, len2 = ref2.length; k < len2; k++) {
-        lyr = ref2[k];
-        appendElements('indexes', 'option', lyr[1], lyr[0]);
       }
     }
   };
@@ -92,9 +97,6 @@ sample_layer_control = function(json) {
   $('#instances').change(function() {
     cloudburstTileLayer.setInstance($(this).val());
     return do_appendElements(false, false, true);
-  });
-  $('#indexes').change(function() {
-    return cloudburstTileLayer.setTindex($('option:selected', this).attr('title'));
   });
   $('#step-backward').click(function() {
     var newval;
@@ -120,26 +122,29 @@ sample_layer_control = function(json) {
     $('#step-backward').removeClass('disabled');
     return $('#indexes').prop("selectedIndex", newval);
   });
-  make_slider = function() {};
-  s = $('#ex1').slider({
-    ticks: (function() {
-      var i, len, ref, results;
-      ref = cloudburstTileLayer.getTindexes(true);
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        t = ref[i];
-        results.push(parseInt(t[0]));
+  make_slider = function() {
+    var s, t;
+    return s = $('#ex1').slider({
+      ticks: (function() {
+        var j, len, ref, results;
+        ref = cloudburstTileLayer.getTindexes(true);
+        results = [];
+        for (j = 0, len = ref.length; j < len; j++) {
+          t = ref[j];
+          results.push(parseInt(t[0]));
+        }
+        return results;
+      })(),
+      tick_positions: cloudburstTileLayer.getTindexesAsPercetagePositions(),
+      ticks_snap_bounds: 1,
+      value: parseInt(cloudburstTileLayer.getTindex()),
+      formatter: function(value) {
+        return cloudburstTileLayer.getTindexes(true)[value][1];
       }
-      return results;
-    })(),
-    ticks_snap_bounds: 1,
-    value: 5,
-    formatter: function(value) {
-      return cloudburstTileLayer.getTindexes(true)[value][1];
-    }
-  }).on('slideStop', function() {
-    return cloudburstTileLayer.setTindex(s.val());
-  });
+    }).on('slideStop', function() {
+      return cloudburstTileLayer.setTindex(s.val());
+    });
+  };
   return make_slider();
 };
 

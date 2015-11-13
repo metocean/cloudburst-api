@@ -106,5 +106,18 @@ L.CloudburstTileLayer = L.TileLayer.extend
       .replace /\[cloudburst\]/,
         "#{@_host}/tile/#{@_renderer}/#{@_layer}/#{@_instance}/#{@_tindex}/"
 
-L.cloudburstTileLayer = (config, options) ->
-  new L.CloudburstTileLayer config, options
+  getTindexesAsPercetagePositions: ->
+    # Takes an array of datetime strings from @getTindexes, and returns an array
+    # of the same length where the datetimes are represented as floats
+    # indicating their percentage value from 0 to 100, where 0 is the lowest
+    # value in the array, and 100 is the highest value.
+    # Useful for displaying an array of time values in irregular intervals along
+    # a line.
+    ts = (Date.parse(t[1])/1000 for t in @.getTindexes(yes))
+    min_ts = Math.min.apply(null, ts)
+    max_ts = Math.max.apply(null, ts)
+    diff = max_ts - min_ts
+    return (t / diff * 100 for t in (t - min_ts for t in ts))
+
+L.cloudburstTileLayer = (hosturl, json, options) ->
+  new L.CloudburstTileLayer hosturl, json, options

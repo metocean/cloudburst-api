@@ -47,12 +47,15 @@
 	    max-height: 200px;
 	    overflow-x: hidden;
 		}
+		#add-item {
+			margin-left:15px;
+		}
 	  </style>
 		<script src="../src/cloudburst.leaflet.tilelayer.js"></script>
 		<script src="../src/cloudburst.js"></script>
 	</head>
 	<body>
-		<div class="container-fluid">
+		<!-- <div class="container-fluid">
 			<div class="row">
 				<div class="col-md-12" id="map"></div>
 			</div>
@@ -63,12 +66,15 @@
 				<div class="col-md-4 btn-group dropup">
 					<select class="btn btn-default btn-md" id="instances"></select>
 				</div>
-				<div class="col-md-4 btn-group pull-right">
-					<button type="button" class="btn btn-default btn-md disabled" id="step-backward">
+				<div class="col-md-4 btn-group btn-group-md pull-right">
+					<button type="button" class="btn btn-default disabled" id="step-backward">
 						<span class="glyphicon glyphicon-step-backward"></span>
 					</button>
-					<select class="btn btn-default btn-md" id="indexes"></select>
-					<button type="button" class="btn btn-default btn-md" id="step-forward">
+					<button type="button" class="btn btn-default">
+						<span class="glyphicon glyphicon glyphicon-calendar"></span>
+						<span class="glyphicon glyphicon glyphicon-time"></span>
+					</button>
+					<button type="button" class="btn btn-default" id="step-forward">
 						<span class="glyphicon glyphicon-step-forward"></span>
 					</button>
 				</div>
@@ -78,7 +84,50 @@
 					<input id="ex1" data-slider-id='ex1Slider' type="text" />
 				</div>
 			</div>
+		</div> -->
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-md-12" id="map"></div>
+			</div>
 		</div>
+		<div class="row">
+			<div class="col-md-4 btn-group btn-group-md dropup">
+				<button type="button" class="btn btn-success" id="add-item" title="Add a layer" data-toggle="modal" data-target="#addLayerModal">
+					<span class="glyphicon glyphicon-plus"></span>
+				</button>
+				<button type="button" class="btn btn-warning disabled" id="remove-item">
+					<span class="glyphicon glyphicon-minus"></span>
+				</button>
+			</div>
+		</div>
+
+		<!-- Popup modal -->
+		<div id="addLayerModal" class="modal fade" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h4 class="modal-title">Add a layer to the map</h4>
+					</div>
+					<div class="modal-body">
+						<div class="row">
+							<div class="col-md-4 btn-group dropup">
+								<select class="btn btn-default btn-md" id="layers"></select>
+							</div>
+							<div class="col-md-4 btn-group dropup">
+								<select class="btn btn-default btn-md" id="instances"></select>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-success">Add to map</button>
+						<!-- <button type="button" class="btn btn-danger" data-dimiss="modal">Close</button> -->
+					</div>
+				</div>
+			</div>
+		</div>
+
+
 		<script src="example.leaflet.js"></script>
 	</body>
 </html>

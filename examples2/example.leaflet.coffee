@@ -8,13 +8,16 @@ make_map = (layers, mapdiv) ->
   	attributionControl: no
   return map
 
-get_cloudburst_tileLayer = (json) ->
+get_cloudburst_tileLayer = (json, opacity, zIndex) ->
   # Create a CloudburstTileLayer
   cloudburstTileLayer = L.cloudburstTileLayer get_host(), json,
     maxZoom: 8
     maxNativeZoom: 9
     reuseTiles: yes
     detectRetina: yes
+    opacity: if opacity? then opacity else 1.0
+    zIndex: if zIndex? then zIndex else null
+
   return cloudburstTileLayer
 
 get_supplementary_tileLayer = ->
@@ -23,6 +26,15 @@ get_supplementary_tileLayer = ->
   	reuseTiles: yes
   	detectRetina: yes
   return supplementary
+
+sample_stack_n_layers = (json) ->
+  layers = [get_supplementary_tileLayer()]
+  for i in [0...3] by 1
+    cloudburstTileLayer = get_cloudburst_tileLayer(json, 0.6)
+    cloudburstTileLayer.setLayer(Object.keys(json.layers)[i])
+    layers.push cloudburstTileLayer
+
+  make_map layers
 
 sample_add_random_layer = (json) ->
   # For this example we are displaying a randomly selected field.
@@ -36,7 +48,7 @@ sample_add_random_layer = (json) ->
 sample_layer_control = (json) ->
   # For this example, we display the first layer, and then add dropdown menus
   # populated from the configuration, that allow the user to change the map
-  # display
+  # display, as well as a time slider
 
   cloudburstTileLayer = get_cloudburst_tileLayer(json)
 
@@ -60,9 +72,9 @@ sample_layer_control = (json) ->
     if (!refresh_instances? or refresh_instances)
       removeOptions('instances')
       appendElements('instances', 'option', lyr) for lyr in cloudburstTileLayer.getInstances()
-    if (!refresh_tindexes? or refresh_tindexes)
-      removeOptions('indexes')
-      appendElements('indexes', 'option', lyr[1], lyr[0]) for lyr in cloudburstTileLayer.getTindexes(yes)
+    # if (!refresh_tindexes? or refresh_tindexes)
+    #   removeOptions('indexes')
+    #   appendElements('indexes', 'option', lyr[1], lyr[0]) for lyr in cloudburstTileLayer.getTindexes(yes)
     return
 
   # Controlling the drop-down menus for layer control
@@ -73,8 +85,8 @@ sample_layer_control = (json) ->
   $('#instances').change ->
     cloudburstTileLayer.setInstance($(this).val())
     do_appendElements(no, no, yes)
-  $('#indexes').change ->
-    cloudburstTileLayer.setTindex($('option:selected', this).attr('title'))
+  # $('#indexes').change ->
+  #   cloudburstTileLayer.setTindex($('option:selected', this).attr('title'))
 
   $('#step-backward').click ->
     cloudburstTileLayer.back()
@@ -96,20 +108,21 @@ sample_layer_control = (json) ->
     $('#step-backward').removeClass('disabled')
     $('#indexes').prop("selectedIndex", newval)
 
+  # Make a time slider to control the time
   make_slider = ->
-		s = $('#ex1').slider
+    s = $('#ex1').slider
       ticks: (parseInt(t[0]) for t in cloudburstTileLayer.getTindexes(yes))
       # ticks_labels: (t[1] for t in cloudburstTileLayer.getTindexes(yes))
-      # tick_positions: (percentages to identify location)
+      tick_positions: cloudburstTileLayer.getTindexesAsPercetagePositions()
       ticks_snap_bounds: 1
-      value: 5
+      value: parseInt(cloudburstTileLayer.getTindex())
       formatter: (value) ->
         cloudburstTileLayer.getTindexes(yes)[value][1]
     .on 'slideStop', ->
       # Refresh the t-index
       cloudburstTileLayer.setTindex(s.val())
 
-  make_slider() # TODO slider().on('slide', func())
+  make_slider()
 
 get_host = ->
   'http://localhost:6060'
