@@ -1,4 +1,7 @@
-var callback, cloudburst, get_cloudburst_tileLayer, get_host, get_supplementary_tileLayer, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers;
+var callback, cloudburst, get_cloudburst_tileLayer, get_host, get_supplementary_tileLayer, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers, supplementaryUrl,
+  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+supplementaryUrl = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
 
 make_map = function(layers, mapdiv) {
   var map;
@@ -27,7 +30,7 @@ get_cloudburst_tileLayer = function(json, opacity, zIndex) {
 
 get_supplementary_tileLayer = function() {
   var supplementary;
-  supplementary = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png', {
+  supplementary = L.tileLayer(supplementaryUrl, {
     maxZoom: 9,
     reuseTiles: true,
     detectRetina: true
@@ -55,7 +58,7 @@ sample_add_random_layer = function(json) {
 };
 
 sample_layer_control = function(json) {
-  var appendElements, cloudburstTileLayer, do_appendElements, get_opacity_slider, get_remove_layer_button, make_opacity_slider, map, removeOptions;
+  var activate_layers, active_layers, appendElements, cloudburstTileLayer, create_layer_table, do_appendElements, get_opacity_slider, get_remove_layer_button, make_opacity_slider, map, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions;
   HTMLElement.prototype.removeClass = function(remove) {
     var classes, i, j, newClassName, ref;
     classes = this.className.split(" ");
@@ -68,6 +71,7 @@ sample_layer_control = function(json) {
     return this.className = newClassName;
   };
   cloudburstTileLayer = get_cloudburst_tileLayer(json);
+  active_layers = [];
   map = make_map([get_supplementary_tileLayer()]);
   removeOptions = function(container_id) {
     return $("#" + container_id).find('option').remove();
@@ -81,7 +85,7 @@ sample_layer_control = function(json) {
     }
     document.getElementById(container_id).appendChild(el);
   };
-  do_appendElements = function(refresh_layers, refresh_instances, refresh_tindexes) {
+  do_appendElements = function(refresh_layers, refresh_instances) {
     var j, k, len, len1, lyr, ref, ref1;
     if ((refresh_layers == null) || refresh_layers) {
       removeOptions('layers');
@@ -108,11 +112,22 @@ sample_layer_control = function(json) {
     span.setAttribute('class', 'glyphicon glyphicon-minus');
     btn.innerHTML = span.outerHTML;
     btn.setAttribute('type', 'button');
-    btn.setAttribute('class', 'btn btn-warning btn-xs');
+    btn.setAttribute('class', 'btn btn-warning btn-xs remove-layer');
     btn.setAttribute('id', id);
     return btn.outerHTML;
   };
-  get_opacity_slider = function(slider_id) {
+  make_opacity_slider = function(slider_id, lyr, value, step) {
+    var s;
+    return s = $("#" + slider_id).slider({
+      min: 0,
+      max: 100,
+      value: value != null ? value : lyr.options.opacity * 100,
+      step: step != null ? step : 10
+    }).on('slideStop', function() {
+      return lyr.setOpacity(s.val() / 100);
+    });
+  };
+  get_opacity_slider = function(slider_id, lyr) {
     var input;
     input = document.createElement('input');
     input.setAttribute('id', slider_id);
@@ -120,38 +135,65 @@ sample_layer_control = function(json) {
     input.setAttribute('type', 'text');
     return input.outerHTML;
   };
-  make_opacity_slider = function(slider_id, layer) {
-    var s, step, value;
-    return s = $("#" + slider_id).slider({
-      min: 0,
-      max: 100
-    }, value = 100, step = 10).on('slideStop', function() {
-      return layer.setOpacity(s.val() / 100);
+  create_layer_table = function(table_id) {
+    var j, len, lyr, row, rowi;
+    table_id = table_id != null ? table_id : "layer-table";
+    document.getElementById("layer-table").innerHTML = null;
+    for (j = 0, len = active_layers.length; j < len; j++) {
+      lyr = active_layers[j];
+      row = document.getElementById("layer-table").insertRow(-1);
+      rowi = document.getElementById("layer-table").rows.length - 1;
+      row.insertCell(0).innerHTML = get_remove_layer_button("remove-layer-" + rowi);
+      row.insertCell(1).innerHTML = (lyr.getLayerName()) + "<br>" + (lyr.getInstance());
+      row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-" + rowi, lyr);
+      row.insertCell(3).innerHTML = 'TODO!';
+      make_opacity_slider("opacity-slider-" + rowi, lyr);
+    }
+    $(".remove-layer").click(function() {
+      active_layers.splice(parseInt(this.id.split("-").slice(-1)[0]), 1);
+      return activate_layers();
     });
   };
-  do_appendElements(true, true, true);
-  document.getElementById("modal-layer-info").innerHTML = cloudburstTileLayer.getLayerDescription();
-  $('#layers').change(function() {
+  activate_layers = function() {
+    var j, len, lyr;
+    if (!map.hasLayer(lyr)) {
+      for (j = 0, len = active_layers.length; j < len; j++) {
+        lyr = active_layers[j];
+        lyr.addTo(map);
+      }
+    }
+    map.eachLayer(function(lyr) {
+      if (!(indexOf.call(active_layers, lyr) >= 0) && !(lyr._url === supplementaryUrl)) {
+        return map.removeLayer(lyr);
+      }
+    });
+    return create_layer_table("layer-table");
+  };
+  on_modal_layer_change = function(selected_list) {
     var candidateLayer;
     candidateLayer = $.extend({}, cloudburstTileLayer);
-    candidateLayer.setLayer($('option:selected', this).attr('title'));
-    do_appendElements(false, true, true);
+    candidateLayer.setLayer($('option:selected', selected_list).attr('title'));
+    do_appendElements(false, true);
     document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription();
-    return document.getElementById("modal-layer-info").removeClass('hide');
+    document.getElementById("modal-layer-info").removeClass('hide');
+  };
+  on_modal_layer_confirm = function(selected_lyr) {
+    selected_lyr.setLayer($('option:selected', $('#layers')).attr('title'));
+    selected_lyr.setInstance($('option:selected', $('#instances')).attr('title'));
+    active_layers.push(selected_lyr);
+    return activate_layers();
+  };
+  prepare_modal_dialogue = function(modal_div) {
+    do_appendElements(true, true);
+    modal_div = modal_div != null ? modal_div : "modal-layer-info";
+    return document.getElementById(modal_div).innerHTML = cloudburstTileLayer.getLayerDescription();
+  };
+  prepare_modal_dialogue();
+  $('#layers').change(function() {
+    return on_modal_layer_change(this);
   });
   return $('#modal-confirm-add').click(function() {
-    var candidateLayer, layerTitle, row, rowi;
-    candidateLayer = $.extend({}, cloudburstTileLayer);
-    layerTitle = $('option:selected', $('#layers')).attr('title');
-    candidateLayer.setLayer(layerTitle);
-    candidateLayer.addTo(map);
-    row = document.getElementById("layer-table").insertRow(-1);
-    rowi = document.getElementById("layer-table").rows.length;
-    row.insertCell(0).innerHTML = get_remove_layer_button('remove-layer-' + rowi);
-    row.insertCell(1).innerHTML = candidateLayer.getLayerName() + '<br>' + candidateLayer.getInstance();
-    row.insertCell(2).innerHTML = get_opacity_slider('opacity-slider-' + rowi);
-    row.insertCell(3).innerHTML = 'TODO!';
-    return make_opacity_slider('opacity-slider-' + rowi, candidateLayer);
+    return on_modal_layer_confirm($.extend({}, cloudburstTileLayer));
   });
 };
 

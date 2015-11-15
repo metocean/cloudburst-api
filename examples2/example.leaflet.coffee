@@ -1,5 +1,7 @@
+supplementaryUrl = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png'
+
 make_map = (layers, mapdiv) ->
-  # Create a leaflet map centred over New Zealand with two tile layers
+  # Create a leaflet map centred over New Zealand with a list of tilelayers
   mapdiv = if mapdiv? then mapdiv else 'map'
   map = new L.Map mapdiv,
   	layers: layers
@@ -21,7 +23,7 @@ get_cloudburst_tileLayer = (json, opacity, zIndex) ->
   return cloudburstTileLayer
 
 get_supplementary_tileLayer = ->
-  supplementary = L.tileLayer 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
+  supplementary = L.tileLayer supplementaryUrl,
   	maxZoom: 9
   	reuseTiles: yes
   	detectRetina: yes
@@ -60,6 +62,8 @@ sample_layer_control = (json) ->
 
   cloudburstTileLayer = get_cloudburst_tileLayer(json)
 
+  active_layers = []
+
   # Start the map with a simple contextual tile layer
   map = make_map([get_supplementary_tileLayer()])
 
@@ -74,7 +78,7 @@ sample_layer_control = (json) ->
     document.getElementById(container_id).appendChild(el)
     return
 
-  do_appendElements = (refresh_layers, refresh_instances, refresh_tindexes) ->
+  do_appendElements = (refresh_layers, refresh_instances) ->
     if (!refresh_layers? or refresh_layers)
       removeOptions('layers')
       appendElements('layers', 'option', lyr[1].meta.name, lyr[0]) for lyr in cloudburstTileLayer.getLayers(yes)
@@ -94,56 +98,83 @@ sample_layer_control = (json) ->
     span.setAttribute('class', 'glyphicon glyphicon-minus')
     btn.innerHTML = span.outerHTML
     btn.setAttribute('type', 'button')
-    btn.setAttribute('class', 'btn btn-warning btn-xs')
+    btn.setAttribute('class', 'btn btn-warning btn-xs remove-layer')
     btn.setAttribute('id', id)
     return btn.outerHTML
 
-  get_opacity_slider = (slider_id)->
+  make_opacity_slider = (slider_id, lyr, value, step) ->
+    s = $("##{slider_id}").slider
+      min: 0
+      max: 100
+      value: if value? then value else lyr.options.opacity * 100
+      step: if step? then step else 10
+    .on 'slideStop', ->
+      lyr.setOpacity(s.val()/100)
+
+  get_opacity_slider = (slider_id, lyr)->
     input = document.createElement('input')
     input.setAttribute('id', slider_id)
     input.setAttribute('data-slider-id', slider_id)
     input.setAttribute('type', 'text')
     return input.outerHTML
 
-  make_opacity_slider = (slider_id, layer) ->
-    s = $("##{slider_id}").slider
-      min: 0
-      max: 100
-      value = 100
-      step = 10
-    .on 'slideStop', ->
-      layer.setOpacity(s.val()/100)
+  create_layer_table = (table_id) ->
+    table_id = if table_id? then table_id else "layer-table"
+    # Clear table
+    document.getElementById("layer-table").innerHTML = null
+    for lyr in active_layers
+      row = document.getElementById("layer-table").insertRow(-1)
+      rowi = document.getElementById("layer-table").rows.length - 1
+      row.insertCell(0).innerHTML = get_remove_layer_button("remove-layer-#{rowi}")
+      row.insertCell(1).innerHTML = "#{lyr.getLayerName()}<br>#{lyr.getInstance()}"
+      row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-#{rowi}", lyr)
+      row.insertCell(3).innerHTML = 'TODO!'
+      make_opacity_slider("opacity-slider-#{rowi}", lyr)
+    $(".remove-layer").click ->
+      active_layers.splice(parseInt(this.id.split("-")[-1..][0]), 1)
+      activate_layers()
+    return
 
+  activate_layers = ->
+    # Displays active layers on the map
+    lyr.addTo(map) for lyr in active_layers if !map.hasLayer(lyr)
+    # Removes inactive layers
+    map.eachLayer (lyr) ->
+      map.removeLayer(lyr) if !(lyr in active_layers) and !(lyr._url is supplementaryUrl)
+    # Adds all active layers to the table of layers
+    create_layer_table "layer-table"
 
-  # Controlling the drop-down menus for layer control
-  do_appendElements(yes, yes, yes)
-  document.getElementById("modal-layer-info").innerHTML = cloudburstTileLayer.getLayerDescription()
-  $('#layers').change ->
+  on_modal_layer_change = (selected_list) ->
     candidateLayer = $.extend({}, cloudburstTileLayer)
-    candidateLayer.setLayer($('option:selected', this).attr('title'))
-    do_appendElements(no, yes, yes)
+    candidateLayer.setLayer($('option:selected', selected_list).attr('title'))
+    do_appendElements(no, yes)
     document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription()
     document.getElementById("modal-layer-info").removeClass('hide')
+    return
 
-  # When user confirms modal add layer
+  on_modal_layer_confirm = (selected_lyr) ->
+    selected_lyr.setLayer $('option:selected', $('#layers')).attr('title')
+    selected_lyr.setInstance $('option:selected', $('#instances')).attr('title')
+    active_layers.push(selected_lyr)
+    activate_layers()
+
+  prepare_modal_dialogue = (modal_div) ->
+    # TODO: remove ability to add same layer/instance twice?
+    # Controlling the drop-down menus for modal layer control
+    do_appendElements(yes, yes)
+    modal_div = if modal_div? then modal_div else "modal-layer-info"
+    document.getElementById(modal_div).innerHTML = cloudburstTileLayer.getLayerDescription()
+
+  # Modal add layer dialogue
+  prepare_modal_dialogue()
+  $('#layers').change ->
+    # When the selected layer changes
+    on_modal_layer_change this
   $('#modal-confirm-add').click ->
-    # TODO ability to reorder layers
-    # Add the selected layer to the map # TODO instance
-    candidateLayer = $.extend({}, cloudburstTileLayer)
-    layerTitle = $('option:selected', $('#layers')).attr('title')
-    candidateLayer.setLayer(layerTitle)
-    candidateLayer.addTo(map)
-    # Add the selected layer to the time widget
-    row = document.getElementById("layer-table").insertRow(-1)
-    rowi = document.getElementById("layer-table").rows.length
-    row.insertCell(0).innerHTML = get_remove_layer_button('remove-layer-' + rowi)
-    row.insertCell(1).innerHTML = candidateLayer.getLayerName() + '<br>' + candidateLayer.getInstance()
-    row.insertCell(2).innerHTML = get_opacity_slider('opacity-slider-' + rowi)
-    row.insertCell(3).innerHTML = 'TODO!'
+    # When user confirms modal add layer
+    on_modal_layer_confirm $.extend({}, cloudburstTileLayer)
 
-    make_opacity_slider('opacity-slider-' + rowi, candidateLayer)
-
-
+  # TODO ability to reorder layers
 
   # $('#step-backward').click ->
   #   cloudburstTileLayer.back()
