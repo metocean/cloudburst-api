@@ -60,6 +60,13 @@ sample_layer_control = (json) ->
         newClassName += classes[i] + " "
     this.className = newClassName
 
+  Array.prototype.move = (old_index, new_index) ->
+    if (new_index >= this.length)
+        k = new_index - this.length
+        # while ((k--) + 1)
+            # this.push(undefined)
+    this.splice(new_index, 0, this.splice(old_index, 1)[0])
+
   cloudburstTileLayer = get_cloudburst_tileLayer(json)
 
   active_layers = []
@@ -87,18 +94,13 @@ sample_layer_control = (json) ->
       appendElements('instances', 'option', lyr) for lyr in cloudburstTileLayer.getInstances()
     return
 
-  get_remove_layer_button = (id) ->
-    '''
-    <button id="ncep_mslp-remove" class="btn btn-warning" type="button">
-      <span class="glyphicon glyphicon-minus"></span>
-    </button>
-    '''
+  get_button = (id, icon_classes, button_classes) ->
     btn = document.createElement('button')
     span = document.createElement('span')
-    span.setAttribute('class', 'glyphicon glyphicon-minus')
+    span.setAttribute('class', icon_classes.join(' '))
     btn.innerHTML = span.outerHTML
     btn.setAttribute('type', 'button')
-    btn.setAttribute('class', 'btn btn-warning btn-xs remove-layer')
+    btn.setAttribute('class', button_classes.join(' '))
     btn.setAttribute('id', id)
     return btn.outerHTML
 
@@ -121,11 +123,17 @@ sample_layer_control = (json) ->
   create_layer_table = (table_id) ->
     table_id = if table_id? then table_id else "layer-table"
     # Clear table
-    document.getElementById("layer-table").innerHTML = null
-    for lyr in active_layers
-      row = document.getElementById("layer-table").insertRow(-1)
-      rowi = document.getElementById("layer-table").rows.length - 1
-      row.insertCell(0).innerHTML = get_remove_layer_button("remove-layer-#{rowi}")
+    document.getElementById(table_id).innerHTML = null
+    for lyr in active_layers.reverse()
+      row = document.getElementById(table_id).insertRow(-1)
+      rowi = document.getElementById(table_id).rows.length - 1
+      row.insertCell(0).innerHTML = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-minus'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
+      for updown in ['up', 'down']
+        if (updown is 'up' and rowi is 0) or (updown is 'down' and rowi is active_layers.length - 1)
+          disable = 'disabled'
+        else
+          disable = 'enabled'
+        row.cells[0].innerHTML += get_button("#{updown}-layer-#{rowi}", ['glyphicon', "glyphicon-chevron-#{updown}"], ['btn', 'btn-default', 'btn-xs', disable, "#{updown}-layer"])
       row.insertCell(1).innerHTML = "#{lyr.getLayerName()}<br>#{lyr.getInstance()}"
       row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-#{rowi}", lyr)
       row.insertCell(3).innerHTML = 'TODO!'
@@ -133,16 +141,23 @@ sample_layer_control = (json) ->
     $(".remove-layer").click ->
       active_layers.splice(parseInt(this.id.split("-")[-1..][0]), 1)
       activate_layers()
+    $(".up-layer").click ->
+      old_index = parseInt(this.id.split("-")[-1..][0])
+      active_layers.move(old_index, old_index + 1)
+      activate_layers()
+    $(".down-layer").click ->
+      old_index = parseInt(this.id.split("-")[-1..][0])
+      active_layers.move(old_index, old_index - 1)
+      activate_layers()
     return
 
   activate_layers = ->
-    # Displays active layers on the map
-    lyr.addTo(map) for lyr in active_layers if !map.hasLayer(lyr)
-    # Removes inactive layers
     map.eachLayer (lyr) ->
-      map.removeLayer(lyr) if !(lyr in active_layers) and !(lyr._url is supplementaryUrl)
+      map.removeLayer(lyr) if !(lyr._url is supplementaryUrl)
+    # Displays active layers on the map
+    lyr.addTo(map) for lyr in active_layers
     # Adds all active layers to the table of layers
-    create_layer_table "layer-table"
+    create_layer_table()
 
   on_modal_layer_change = (selected_list) ->
     candidateLayer = $.extend({}, cloudburstTileLayer)

@@ -1,5 +1,4 @@
-var callback, cloudburst, get_cloudburst_tileLayer, get_host, get_supplementary_tileLayer, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers, supplementaryUrl,
-  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+var callback, cloudburst, get_cloudburst_tileLayer, get_host, get_supplementary_tileLayer, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers, supplementaryUrl;
 
 supplementaryUrl = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
 
@@ -58,7 +57,7 @@ sample_add_random_layer = function(json) {
 };
 
 sample_layer_control = function(json) {
-  var activate_layers, active_layers, appendElements, cloudburstTileLayer, create_layer_table, do_appendElements, get_opacity_slider, get_remove_layer_button, make_opacity_slider, map, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions;
+  var activate_layers, active_layers, appendElements, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_opacity_slider, map, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions;
   HTMLElement.prototype.removeClass = function(remove) {
     var classes, i, j, newClassName, ref;
     classes = this.className.split(" ");
@@ -69,6 +68,13 @@ sample_layer_control = function(json) {
       }
     }
     return this.className = newClassName;
+  };
+  Array.prototype.move = function(old_index, new_index) {
+    var k;
+    if (new_index >= this.length) {
+      k = new_index - this.length;
+    }
+    return this.splice(new_index, 0, this.splice(old_index, 1)[0]);
   };
   cloudburstTileLayer = get_cloudburst_tileLayer(json);
   active_layers = [];
@@ -86,7 +92,7 @@ sample_layer_control = function(json) {
     document.getElementById(container_id).appendChild(el);
   };
   do_appendElements = function(refresh_layers, refresh_instances) {
-    var j, k, len, len1, lyr, ref, ref1;
+    var j, l, len, len1, lyr, ref, ref1;
     if ((refresh_layers == null) || refresh_layers) {
       removeOptions('layers');
       ref = cloudburstTileLayer.getLayers(true);
@@ -98,21 +104,20 @@ sample_layer_control = function(json) {
     if ((refresh_instances == null) || refresh_instances) {
       removeOptions('instances');
       ref1 = cloudburstTileLayer.getInstances();
-      for (k = 0, len1 = ref1.length; k < len1; k++) {
-        lyr = ref1[k];
+      for (l = 0, len1 = ref1.length; l < len1; l++) {
+        lyr = ref1[l];
         appendElements('instances', 'option', lyr);
       }
     }
   };
-  get_remove_layer_button = function(id) {
-    '<button id="ncep_mslp-remove" class="btn btn-warning" type="button">\n  <span class="glyphicon glyphicon-minus"></span>\n</button>';
+  get_button = function(id, icon_classes, button_classes) {
     var btn, span;
     btn = document.createElement('button');
     span = document.createElement('span');
-    span.setAttribute('class', 'glyphicon glyphicon-minus');
+    span.setAttribute('class', icon_classes.join(' '));
     btn.innerHTML = span.outerHTML;
     btn.setAttribute('type', 'button');
-    btn.setAttribute('class', 'btn btn-warning btn-xs remove-layer');
+    btn.setAttribute('class', button_classes.join(' '));
     btn.setAttribute('id', id);
     return btn.outerHTML;
   };
@@ -136,14 +141,25 @@ sample_layer_control = function(json) {
     return input.outerHTML;
   };
   create_layer_table = function(table_id) {
-    var j, len, lyr, row, rowi;
+    var disable, j, l, len, len1, lyr, ref, ref1, row, rowi, updown;
     table_id = table_id != null ? table_id : "layer-table";
-    document.getElementById("layer-table").innerHTML = null;
-    for (j = 0, len = active_layers.length; j < len; j++) {
-      lyr = active_layers[j];
-      row = document.getElementById("layer-table").insertRow(-1);
-      rowi = document.getElementById("layer-table").rows.length - 1;
-      row.insertCell(0).innerHTML = get_remove_layer_button("remove-layer-" + rowi);
+    document.getElementById(table_id).innerHTML = null;
+    ref = active_layers.reverse();
+    for (j = 0, len = ref.length; j < len; j++) {
+      lyr = ref[j];
+      row = document.getElementById(table_id).insertRow(-1);
+      rowi = document.getElementById(table_id).rows.length - 1;
+      row.insertCell(0).innerHTML = get_button("remove-layer-" + rowi, ['glyphicon', 'glyphicon-minus'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer']);
+      ref1 = ['up', 'down'];
+      for (l = 0, len1 = ref1.length; l < len1; l++) {
+        updown = ref1[l];
+        if ((updown === 'up' && rowi === 0) || (updown === 'down' && rowi === active_layers.length - 1)) {
+          disable = 'disabled';
+        } else {
+          disable = 'enabled';
+        }
+        row.cells[0].innerHTML += get_button(updown + "-layer-" + rowi, ['glyphicon', "glyphicon-chevron-" + updown], ['btn', 'btn-default', 'btn-xs', disable, updown + "-layer"]);
+      }
       row.insertCell(1).innerHTML = (lyr.getLayerName()) + "<br>" + (lyr.getInstance());
       row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-" + rowi, lyr);
       row.insertCell(3).innerHTML = 'TODO!';
@@ -153,21 +169,31 @@ sample_layer_control = function(json) {
       active_layers.splice(parseInt(this.id.split("-").slice(-1)[0]), 1);
       return activate_layers();
     });
+    $(".up-layer").click(function() {
+      var old_index;
+      old_index = parseInt(this.id.split("-").slice(-1)[0]);
+      active_layers.move(old_index, old_index + 1);
+      return activate_layers();
+    });
+    $(".down-layer").click(function() {
+      var old_index;
+      old_index = parseInt(this.id.split("-").slice(-1)[0]);
+      active_layers.move(old_index, old_index - 1);
+      return activate_layers();
+    });
   };
   activate_layers = function() {
     var j, len, lyr;
-    if (!map.hasLayer(lyr)) {
-      for (j = 0, len = active_layers.length; j < len; j++) {
-        lyr = active_layers[j];
-        lyr.addTo(map);
-      }
-    }
     map.eachLayer(function(lyr) {
-      if (!(indexOf.call(active_layers, lyr) >= 0) && !(lyr._url === supplementaryUrl)) {
+      if (!(lyr._url === supplementaryUrl)) {
         return map.removeLayer(lyr);
       }
     });
-    return create_layer_table("layer-table");
+    for (j = 0, len = active_layers.length; j < len; j++) {
+      lyr = active_layers[j];
+      lyr.addTo(map);
+    }
+    return create_layer_table();
   };
   on_modal_layer_change = function(selected_list) {
     var candidateLayer;

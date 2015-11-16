@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title>Leaflet Cloudburst - MetOcean</title>
+		<!-- Thanks glyphicons.com ! -->
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
@@ -104,7 +105,7 @@
 					<span class="glyphicon glyphicon-minus"></span>
 				</button> -->
 			<div class="container">
-				<table class="table table-hover" id="layer-table">
+				<table class="table table-hover" id="layer-table-parent">
 			    <thead>
 			      <tr>
 							<th><!-- Remove a=layer button --></th>
@@ -116,7 +117,7 @@
 							</th>
 			      </tr>
 			    </thead>
-			    <tbody>
+			    <tbody id="layer-table">
 			    </tbody>
 			  </table>
 			</div>
