@@ -5,19 +5,19 @@
 		<!-- Thanks glyphicons.com ! -->
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
 		<!-- jQuery -->
-		<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-		<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+		<script src="../bower_components/jquery/dist/jquery.min.js"></script>
+		<script src="../bower_components/jquery-ui/jquery-ui.min.js"></script>
+		<link rel="stylesheet" href="../bower_components/jquery-ui/themes/smoothness/jquery-ui.min.css">
 		<!-- Leaflet -->
-		<script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
+		<script src="../bower_components/leaflet/dist/leaflet.js"></script>
+		<link rel="stylesheet" href="../bower_components/leaflet/dist/leaflet.css" />
 		<!-- Bootstrap -->
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
-		<!-- bootstrap-slider -->
-		<script src="../bower_components/seiyria-bootstrap-slider/js/bootstrap-slider.js"></script>
-		<link rel="stylesheet" href="../bower_components/seiyria-bootstrap-slider/css/bootstrap-slider.css" />
+		<script src="../bower_components/bootstrap/dist/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+		<!-- jQuery-ui-Slider-Pips -->
+		<script src="../bower_components/jQuery-ui-Slider-Pips/dist/jquery-ui-slider-pips.min.js"></script>
+		<link rel="stylesheet" href="../bower_components/jQuery-ui-Slider-Pips/dist/jquery-ui-slider-pips.css" />
 		<style>
 		html, body {
 			height:100%;
@@ -107,6 +107,15 @@
 				</div>
 			</div>
 		</div>
+
+		<script>
+			// With JQuery
+			$('#ex1').slider({
+				formatter: function(value) {
+					return 'Current value: ' + value;
+				}
+			});
+		</script>
 
 		<script src="example.leaflet.js"></script>
 	</body>
