@@ -110,14 +110,15 @@ sample_layer_control = (json) ->
       max: 100
       value: if value? then value else lyr.options.opacity * 100
       step: if step? then step else 10
-    .on 'slideStop', ->
-      lyr.setOpacity(s.val()/100)
+      stop: (event, ui) ->
+        # TODO bugfix: setting the opacity sets it on all active layers?
+        slider_id = parseInt(this.id.split("-")[-1..][0])
+        active_layers[slider_id].setOpacity(ui.value/100)
 
-  get_opacity_slider = (slider_id, lyr)->
-    input = document.createElement('input')
+  get_opacity_slider = (slider_id)->
+    input = document.createElement('div')
     input.setAttribute('id', slider_id)
-    input.setAttribute('data-slider-id', slider_id)
-    input.setAttribute('type', 'text')
+    console.log input.outerHTML
     return input.outerHTML
 
   create_layer_table = (table_id) ->
@@ -127,35 +128,28 @@ sample_layer_control = (json) ->
     for lyr in active_layers.reverse()
       row = document.getElementById(table_id).insertRow(-1)
       rowi = document.getElementById(table_id).rows.length - 1
-      row.insertCell(0).innerHTML = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-minus'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
-      for updown in ['up', 'down']
-        if (updown is 'up' and rowi is 0) or (updown is 'down' and rowi is active_layers.length - 1)
-          disable = 'disabled'
-        else
-          disable = 'enabled'
-        row.cells[0].innerHTML += get_button("#{updown}-layer-#{rowi}", ['glyphicon', "glyphicon-chevron-#{updown}"], ['btn', 'btn-default', 'btn-xs', disable, "#{updown}-layer"])
+      row.insertCell(0).innerHTML = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
       row.insertCell(1).innerHTML = "#{lyr.getLayerName()}<br>#{lyr.getInstance()}"
-      row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-#{rowi}", lyr)
+      row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-#{rowi}")
       row.insertCell(3).innerHTML = 'TODO!'
       make_opacity_slider("opacity-slider-#{rowi}", lyr)
     $(".remove-layer").click ->
       active_layers.splice(parseInt(this.id.split("-")[-1..][0]), 1)
       activate_layers()
-    $(".up-layer").click ->
-      old_index = parseInt(this.id.split("-")[-1..][0])
-      active_layers.move(old_index, old_index + 1)
-      activate_layers()
-    $(".down-layer").click ->
-      old_index = parseInt(this.id.split("-")[-1..][0])
-      active_layers.move(old_index, old_index - 1)
-      activate_layers()
+    $("#layer-table-parent tbody").sortable
+      start: (event, ui) ->
+        ui.item.startPos = ui.item.index()
+      update: (event, ui) ->
+        active_layers.move(ui.item.startPos, ui.item.index())
+        activate_layers()
+    .disableSelection()
     return
 
   activate_layers = ->
     map.eachLayer (lyr) ->
       map.removeLayer(lyr) if !(lyr._url is supplementaryUrl)
     # Displays active layers on the map
-    lyr.addTo(map) for lyr in active_layers
+    lyr.addTo(map) for lyr in active_layers.reverse()
     # Adds all active layers to the table of layers
     create_layer_table()
 
@@ -164,10 +158,10 @@ sample_layer_control = (json) ->
     candidateLayer.setLayer($('option:selected', selected_list).attr('title'))
     do_appendElements(no, yes)
     document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription()
-    document.getElementById("modal-layer-info").removeClass('hide')
     return
 
-  on_modal_layer_confirm = (selected_lyr) ->
+  on_modal_layer_confirm = ->
+    selected_lyr = $.extend({}, cloudburstTileLayer)
     selected_lyr.setLayer $('option:selected', $('#layers')).attr('title')
     selected_lyr.setInstance $('option:selected', $('#instances')).attr('title')
     active_layers.push(selected_lyr)
@@ -187,7 +181,7 @@ sample_layer_control = (json) ->
     on_modal_layer_change this
   $('#modal-confirm-add').click ->
     # When user confirms modal add layer
-    on_modal_layer_confirm $.extend({}, cloudburstTileLayer)
+    on_modal_layer_confirm()
 
   # TODO ability to reorder layers
 

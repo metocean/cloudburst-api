@@ -127,21 +127,22 @@ sample_layer_control = function(json) {
       min: 0,
       max: 100,
       value: value != null ? value : lyr.options.opacity * 100,
-      step: step != null ? step : 10
-    }).on('slideStop', function() {
-      return lyr.setOpacity(s.val() / 100);
+      step: step != null ? step : 10,
+      stop: function(event, ui) {
+        slider_id = parseInt(this.id.split("-").slice(-1)[0]);
+        return active_layers[slider_id].setOpacity(ui.value / 100);
+      }
     });
   };
-  get_opacity_slider = function(slider_id, lyr) {
+  get_opacity_slider = function(slider_id) {
     var input;
-    input = document.createElement('input');
+    input = document.createElement('div');
     input.setAttribute('id', slider_id);
-    input.setAttribute('data-slider-id', slider_id);
-    input.setAttribute('type', 'text');
+    console.log(input.outerHTML);
     return input.outerHTML;
   };
   create_layer_table = function(table_id) {
-    var disable, j, l, len, len1, lyr, ref, ref1, row, rowi, updown;
+    var j, len, lyr, ref, row, rowi;
     table_id = table_id != null ? table_id : "layer-table";
     document.getElementById(table_id).innerHTML = null;
     ref = active_layers.reverse();
@@ -149,19 +150,9 @@ sample_layer_control = function(json) {
       lyr = ref[j];
       row = document.getElementById(table_id).insertRow(-1);
       rowi = document.getElementById(table_id).rows.length - 1;
-      row.insertCell(0).innerHTML = get_button("remove-layer-" + rowi, ['glyphicon', 'glyphicon-minus'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer']);
-      ref1 = ['up', 'down'];
-      for (l = 0, len1 = ref1.length; l < len1; l++) {
-        updown = ref1[l];
-        if ((updown === 'up' && rowi === 0) || (updown === 'down' && rowi === active_layers.length - 1)) {
-          disable = 'disabled';
-        } else {
-          disable = 'enabled';
-        }
-        row.cells[0].innerHTML += get_button(updown + "-layer-" + rowi, ['glyphicon', "glyphicon-chevron-" + updown], ['btn', 'btn-default', 'btn-xs', disable, updown + "-layer"]);
-      }
+      row.insertCell(0).innerHTML = get_button("remove-layer-" + rowi, ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer']);
       row.insertCell(1).innerHTML = (lyr.getLayerName()) + "<br>" + (lyr.getInstance());
-      row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-" + rowi, lyr);
+      row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-" + rowi);
       row.insertCell(3).innerHTML = 'TODO!';
       make_opacity_slider("opacity-slider-" + rowi, lyr);
     }
@@ -169,28 +160,26 @@ sample_layer_control = function(json) {
       active_layers.splice(parseInt(this.id.split("-").slice(-1)[0]), 1);
       return activate_layers();
     });
-    $(".up-layer").click(function() {
-      var old_index;
-      old_index = parseInt(this.id.split("-").slice(-1)[0]);
-      active_layers.move(old_index, old_index + 1);
-      return activate_layers();
-    });
-    $(".down-layer").click(function() {
-      var old_index;
-      old_index = parseInt(this.id.split("-").slice(-1)[0]);
-      active_layers.move(old_index, old_index - 1);
-      return activate_layers();
-    });
+    $("#layer-table-parent tbody").sortable({
+      start: function(event, ui) {
+        return ui.item.startPos = ui.item.index();
+      },
+      update: function(event, ui) {
+        active_layers.move(ui.item.startPos, ui.item.index());
+        return activate_layers();
+      }
+    }).disableSelection();
   };
   activate_layers = function() {
-    var j, len, lyr;
+    var j, len, lyr, ref;
     map.eachLayer(function(lyr) {
       if (!(lyr._url === supplementaryUrl)) {
         return map.removeLayer(lyr);
       }
     });
-    for (j = 0, len = active_layers.length; j < len; j++) {
-      lyr = active_layers[j];
+    ref = active_layers.reverse();
+    for (j = 0, len = ref.length; j < len; j++) {
+      lyr = ref[j];
       lyr.addTo(map);
     }
     return create_layer_table();
@@ -201,9 +190,10 @@ sample_layer_control = function(json) {
     candidateLayer.setLayer($('option:selected', selected_list).attr('title'));
     do_appendElements(false, true);
     document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription();
-    document.getElementById("modal-layer-info").removeClass('hide');
   };
-  on_modal_layer_confirm = function(selected_lyr) {
+  on_modal_layer_confirm = function() {
+    var selected_lyr;
+    selected_lyr = $.extend({}, cloudburstTileLayer);
     selected_lyr.setLayer($('option:selected', $('#layers')).attr('title'));
     selected_lyr.setInstance($('option:selected', $('#instances')).attr('title'));
     active_layers.push(selected_lyr);
@@ -219,7 +209,7 @@ sample_layer_control = function(json) {
     return on_modal_layer_change(this);
   });
   return $('#modal-confirm-add').click(function() {
-    return on_modal_layer_confirm($.extend({}, cloudburstTileLayer));
+    return on_modal_layer_confirm();
   });
 };
 
