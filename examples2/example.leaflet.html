@@ -18,6 +18,8 @@
 		<!-- jQuery-ui-Slider-Pips -->
 		<script src="../bower_components/jQuery-ui-Slider-Pips/dist/jquery-ui-slider-pips.min.js"></script>
 		<link rel="stylesheet" href="../bower_components/jQuery-ui-Slider-Pips/dist/jquery-ui-slider-pips.css" />
+		<!-- moment.js -->
+		<script src="../bower_components/moment/min/moment.min.js"></script>
 		<style>
 		html, body {
 			height:100%;
@@ -31,6 +33,14 @@
 		}
 		#modal-layer-info {
 			margin-top:15px;
+		}
+		.slider {
+			width:90%;
+			margin:0 auto;
+			margin-top:5px;
+		}
+		.slider.ui-slider-pips .ui-slider-pip {
+			display: none;
 		}
 	  </style>
 		<script src="../src/cloudburst.leaflet.tilelayer.js"></script>
@@ -53,6 +63,9 @@
 					<!-- <div class="col-md-10">
 						<input id="global-time-slider" data-slider-id='global-time-slider' type="text" />
 					</div> -->
+					<div class="col-md-10">
+						<div id="global-slider" class="slider" disable="disabled"></div>
+					</div>
 				</div>
 				<div class="row">
 					<div class="col-md-12">
@@ -107,16 +120,6 @@
 				</div>
 			</div>
 		</div>
-
-		<script>
-			// With JQuery
-			$('#ex1').slider({
-				formatter: function(value) {
-					return 'Current value: ' + value;
-				}
-			});
-		</script>
-
 		<script src="example.leaflet.js"></script>
 	</body>
 </html>

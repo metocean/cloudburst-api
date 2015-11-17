@@ -74,6 +74,29 @@ sample_layer_control = (json) ->
   # Start the map with a simple contextual tile layer
   map = make_map([get_supplementary_tileLayer()])
 
+  toggle_el_property = (elem_id, property, off_on) ->
+    console.log "Turning #{elem_id} #{property} #{off_on}"
+    $("##{elem_id}").prop(property, off_on)
+
+  make_global_slider = (off_on, values, step, slider_class, slider_id) ->
+    toggle_el_property(slider_id, 'hidden', off_on)
+    slider_class = if slider_class? then slider_class else 'slider'
+    slider_id = if slider_id? then slider_id else 'global-slider'
+    if values?
+      s = $(".#{slider_class}")
+      .slider
+        min: Math.min.apply(Math, values)
+        max: Math.max.apply(Math, values)
+        step: if step? then step else 10800 # Smallest step present in values
+      .slider "pips",
+        first: 'label'
+        last: 'pip'
+        rest: 'pip'
+        labels: moment.unix(t).fromNow() for t in values
+      $pips = $(".#{slider_class}").find(".ui-slider-pip") # Hold all the pips for filtering
+      for val in values
+        $pips.filter(".ui-slider-pip-#{val}").show()
+
   removeOptions = (container_id) ->
     $("##{container_id}").find('option').remove()
 
@@ -118,7 +141,6 @@ sample_layer_control = (json) ->
   get_opacity_slider = (slider_id)->
     input = document.createElement('div')
     input.setAttribute('id', slider_id)
-    console.log input.outerHTML
     return input.outerHTML
 
   create_layer_table = (table_id) ->
@@ -150,6 +172,11 @@ sample_layer_control = (json) ->
       map.removeLayer(lyr) if !(lyr._url is supplementaryUrl)
     # Displays active layers on the map
     lyr.addTo(map) for lyr in active_layers.reverse()
+    # Adds indexes to time slider # TODO may not be time
+    t_set = new Set()
+    for lyr in active_layers
+      t_set.add(moment(t[1]).unix()) for t in lyr.getTindexes(yes)
+    make_global_slider(off, Array.from(t_set))
     # Adds all active layers to the table of layers
     create_layer_table()
 
@@ -182,6 +209,11 @@ sample_layer_control = (json) ->
   $('#modal-confirm-add').click ->
     # When user confirms modal add layer
     on_modal_layer_confirm()
+
+  # Prepare global slider
+  make_global_slider(on)
+
+
 
   # TODO ability to reorder layers
 

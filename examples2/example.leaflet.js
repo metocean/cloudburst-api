@@ -57,7 +57,7 @@ sample_add_random_layer = function(json) {
 };
 
 sample_layer_control = function(json) {
-  var activate_layers, active_layers, appendElements, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_opacity_slider, map, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions;
+  var activate_layers, active_layers, appendElements, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_global_slider, make_opacity_slider, map, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property;
   HTMLElement.prototype.removeClass = function(remove) {
     var classes, i, j, newClassName, ref;
     classes = this.className.split(" ");
@@ -79,6 +79,43 @@ sample_layer_control = function(json) {
   cloudburstTileLayer = get_cloudburst_tileLayer(json);
   active_layers = [];
   map = make_map([get_supplementary_tileLayer()]);
+  toggle_el_property = function(elem_id, property, off_on) {
+    console.log("Turning " + elem_id + " " + property + " " + off_on);
+    return $("#" + elem_id).prop(property, off_on);
+  };
+  make_global_slider = function(off_on, values, step, slider_class, slider_id) {
+    var $pips, j, len, results, s, t, val;
+    toggle_el_property(slider_id, 'hidden', off_on);
+    slider_class = slider_class != null ? slider_class : 'slider';
+    slider_id = slider_id != null ? slider_id : 'global-slider';
+    if (values != null) {
+      s = $("." + slider_class).slider({
+        min: Math.min.apply(Math, values),
+        max: Math.max.apply(Math, values),
+        step: step != null ? step : 10800
+      }).slider("pips", {
+        first: 'label',
+        last: 'pip',
+        rest: 'pip',
+        labels: (function() {
+          var j, len, results;
+          results = [];
+          for (j = 0, len = values.length; j < len; j++) {
+            t = values[j];
+            results.push(moment.unix(t).fromNow());
+          }
+          return results;
+        })()
+      });
+      $pips = $("." + slider_class).find(".ui-slider-pip");
+      results = [];
+      for (j = 0, len = values.length; j < len; j++) {
+        val = values[j];
+        results.push($pips.filter(".ui-slider-pip-" + val).show());
+      }
+      return results;
+    }
+  };
   removeOptions = function(container_id) {
     return $("#" + container_id).find('option').remove();
   };
@@ -138,7 +175,6 @@ sample_layer_control = function(json) {
     var input;
     input = document.createElement('div');
     input.setAttribute('id', slider_id);
-    console.log(input.outerHTML);
     return input.outerHTML;
   };
   create_layer_table = function(table_id) {
@@ -171,7 +207,7 @@ sample_layer_control = function(json) {
     }).disableSelection();
   };
   activate_layers = function() {
-    var j, len, lyr, ref;
+    var j, l, len, len1, len2, lyr, m, ref, ref1, t, t_set;
     map.eachLayer(function(lyr) {
       if (!(lyr._url === supplementaryUrl)) {
         return map.removeLayer(lyr);
@@ -182,6 +218,16 @@ sample_layer_control = function(json) {
       lyr = ref[j];
       lyr.addTo(map);
     }
+    t_set = new Set();
+    for (l = 0, len1 = active_layers.length; l < len1; l++) {
+      lyr = active_layers[l];
+      ref1 = lyr.getTindexes(true);
+      for (m = 0, len2 = ref1.length; m < len2; m++) {
+        t = ref1[m];
+        t_set.add(moment(t[1]).unix());
+      }
+    }
+    make_global_slider(false, Array.from(t_set));
     return create_layer_table();
   };
   on_modal_layer_change = function(selected_list) {
@@ -208,9 +254,10 @@ sample_layer_control = function(json) {
   $('#layers').change(function() {
     return on_modal_layer_change(this);
   });
-  return $('#modal-confirm-add').click(function() {
+  $('#modal-confirm-add').click(function() {
     return on_modal_layer_confirm();
   });
+  return make_global_slider(true);
 };
 
 get_host = function() {
