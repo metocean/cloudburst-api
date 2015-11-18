@@ -78,24 +78,50 @@ sample_layer_control = (json) ->
     console.log "Turning #{elem_id} #{property} #{off_on}"
     $("##{elem_id}").prop(property, off_on)
 
+  closest = (array, target) ->
+    # Returns the Number in array that is closest in value to Number target
+    array.reduce (prev, curr) ->
+      if (Math.abs(curr - target) < Math.abs(prev - target)) then curr else prev
+
   make_global_slider = (off_on, values, step, slider_class, slider_id) ->
     toggle_el_property(slider_id, 'hidden', off_on)
-    slider_class = if slider_class? then slider_class else 'slider'
-    slider_id = if slider_id? then slider_id else 'global-slider'
     if values?
-      s = $(".#{slider_class}")
+      slider_class = if slider_class? then slider_class else 'slider'
+      slider_id = if slider_id? then slider_id else 'global-slider'
+      $(".#{slider_class}")
       .slider
         min: Math.min.apply(Math, values)
         max: Math.max.apply(Math, values)
         step: if step? then step else 10800 # Smallest step present in values
+        change: (event, ui) ->
+          for lyr in active_layers
+            lyr_moments = (moment(t[1]).unix() for t in lyr.getTindexes(yes))
+            selected_moment_str = closest(lyr_moments, ui.value)
+            lyr.setTindex(lyr_moments.indexOf(selected_moment_str))
+          activate_layers()
+        slide: (event, ui) ->
+          # TODO this is a bit of a hack
+          $('[data-toggle="tooltip"]').prop('title', moment.unix(ui.value).format('LLLL'))
+          return
       .slider "pips",
         first: 'label'
-        last: 'pip'
+        last: 'label'
         rest: 'pip'
         labels: moment.unix(t).fromNow() for t in values
+
+      # Filter pips, marking them along the slider at appropriate and possibly irregular intervals
       $pips = $(".#{slider_class}").find(".ui-slider-pip") # Hold all the pips for filtering
       for val in values
         $pips.filter(".ui-slider-pip-#{val}").show()
+
+      # Tooltip of slider drag button
+      # TODO this is a bit of a hack
+      tooltip = '<a href="#" id="global-slider-tooltip" data-toggle="tooltip">&nbsp&nbsp&nbsp&nbsp</a>'
+      $(".#{slider_class} .ui-slider-handle").html(tooltip)
+      $('[data-toggle="tooltip"]').tooltip
+        placement: 'top'
+
+      return
 
   removeOptions = (container_id) ->
     $("##{container_id}").find('option').remove()
@@ -128,7 +154,7 @@ sample_layer_control = (json) ->
     return btn.outerHTML
 
   make_opacity_slider = (slider_id, lyr, value, step) ->
-    s = $("##{slider_id}").slider
+    $("##{slider_id}").slider
       min: 0
       max: 100
       value: if value? then value else lyr.options.opacity * 100
@@ -153,7 +179,7 @@ sample_layer_control = (json) ->
       row.insertCell(0).innerHTML = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
       row.insertCell(1).innerHTML = "#{lyr.getLayerName()}<br>#{lyr.getInstance()}"
       row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-#{rowi}")
-      row.insertCell(3).innerHTML = 'TODO!'
+      row.insertCell(3).innerHTML = moment(lyr.getTindex(yes)).format('LLLL')
       make_opacity_slider("opacity-slider-#{rowi}", lyr)
     $(".remove-layer").click ->
       active_layers.splice(parseInt(this.id.split("-")[-1..][0]), 1)

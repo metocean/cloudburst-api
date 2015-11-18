@@ -57,7 +57,7 @@ sample_add_random_layer = function(json) {
 };
 
 sample_layer_control = function(json) {
-  var activate_layers, active_layers, appendElements, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_global_slider, make_opacity_slider, map, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property;
+  var activate_layers, active_layers, appendElements, closest, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_global_slider, make_opacity_slider, map, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property;
   HTMLElement.prototype.removeClass = function(remove) {
     var classes, i, j, newClassName, ref;
     classes = this.className.split(" ");
@@ -83,19 +83,50 @@ sample_layer_control = function(json) {
     console.log("Turning " + elem_id + " " + property + " " + off_on);
     return $("#" + elem_id).prop(property, off_on);
   };
+  closest = function(array, target) {
+    return array.reduce(function(prev, curr) {
+      if (Math.abs(curr - target) < Math.abs(prev - target)) {
+        return curr;
+      } else {
+        return prev;
+      }
+    });
+  };
   make_global_slider = function(off_on, values, step, slider_class, slider_id) {
-    var $pips, j, len, results, s, t, val;
+    var $pips, j, len, t, tooltip, val;
     toggle_el_property(slider_id, 'hidden', off_on);
-    slider_class = slider_class != null ? slider_class : 'slider';
-    slider_id = slider_id != null ? slider_id : 'global-slider';
     if (values != null) {
-      s = $("." + slider_class).slider({
+      slider_class = slider_class != null ? slider_class : 'slider';
+      slider_id = slider_id != null ? slider_id : 'global-slider';
+      $("." + slider_class).slider({
         min: Math.min.apply(Math, values),
         max: Math.max.apply(Math, values),
-        step: step != null ? step : 10800
+        step: step != null ? step : 10800,
+        change: function(event, ui) {
+          var j, len, lyr, lyr_moments, selected_moment_str;
+          for (j = 0, len = active_layers.length; j < len; j++) {
+            lyr = active_layers[j];
+            lyr_moments = (function() {
+              var l, len1, ref, results;
+              ref = lyr.getTindexes(true);
+              results = [];
+              for (l = 0, len1 = ref.length; l < len1; l++) {
+                t = ref[l];
+                results.push(moment(t[1]).unix());
+              }
+              return results;
+            })();
+            selected_moment_str = closest(lyr_moments, ui.value);
+            lyr.setTindex(lyr_moments.indexOf(selected_moment_str));
+          }
+          return activate_layers();
+        },
+        slide: function(event, ui) {
+          $('[data-toggle="tooltip"]').prop('title', moment.unix(ui.value).format('LLLL'));
+        }
       }).slider("pips", {
         first: 'label',
-        last: 'pip',
+        last: 'label',
         rest: 'pip',
         labels: (function() {
           var j, len, results;
@@ -108,12 +139,15 @@ sample_layer_control = function(json) {
         })()
       });
       $pips = $("." + slider_class).find(".ui-slider-pip");
-      results = [];
       for (j = 0, len = values.length; j < len; j++) {
         val = values[j];
-        results.push($pips.filter(".ui-slider-pip-" + val).show());
+        $pips.filter(".ui-slider-pip-" + val).show();
       }
-      return results;
+      tooltip = '<a href="#" id="global-slider-tooltip" data-toggle="tooltip">&nbsp&nbsp&nbsp&nbsp</a>';
+      $("." + slider_class + " .ui-slider-handle").html(tooltip);
+      $('[data-toggle="tooltip"]').tooltip({
+        placement: 'top'
+      });
     }
   };
   removeOptions = function(container_id) {
@@ -159,8 +193,7 @@ sample_layer_control = function(json) {
     return btn.outerHTML;
   };
   make_opacity_slider = function(slider_id, lyr, value, step) {
-    var s;
-    return s = $("#" + slider_id).slider({
+    return $("#" + slider_id).slider({
       min: 0,
       max: 100,
       value: value != null ? value : lyr.options.opacity * 100,
@@ -189,7 +222,7 @@ sample_layer_control = function(json) {
       row.insertCell(0).innerHTML = get_button("remove-layer-" + rowi, ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer']);
       row.insertCell(1).innerHTML = (lyr.getLayerName()) + "<br>" + (lyr.getInstance());
       row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-" + rowi);
-      row.insertCell(3).innerHTML = 'TODO!';
+      row.insertCell(3).innerHTML = moment(lyr.getTindex(true)).format('LLLL');
       make_opacity_slider("opacity-slider-" + rowi, lyr);
     }
     $(".remove-layer").click(function() {

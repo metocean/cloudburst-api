@@ -130,8 +130,12 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     }
     return this;
   },
-  getTindex: function() {
-    return this._tindex;
+  getTindex: function(as_time_string) {
+    if (as_time_string == null) {
+      return this._tindex;
+    } else {
+      return this.getTindexes(true)[this._tindex][1];
+    }
   },
   getRenderer: function() {
     return this._renderer;

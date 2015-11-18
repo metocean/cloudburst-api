@@ -98,8 +98,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
       console.log("Tindex set to: #{@_tindex}")
     @
 
-  getTindex: ->
-    @_tindex
+  getTindex: (as_time_string) ->
+    if !as_time_string? then @_tindex else @getTindexes(yes)[@_tindex][1]
 
   getRenderer: ->
     @_renderer
