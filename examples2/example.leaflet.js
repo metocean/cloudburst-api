@@ -57,7 +57,7 @@ sample_add_random_layer = function(json) {
 };
 
 sample_layer_control = function(json) {
-  var activate_layers, active_layers, appendElements, closest, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_global_slider, make_opacity_slider, map, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property;
+  var activate_layers, active_layers, appendElements, closest, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_global_slider, make_opacity_slider, map, move_in_array, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property;
   HTMLElement.prototype.removeClass = function(remove) {
     var classes, i, j, newClassName, ref;
     classes = this.className.split(" ");
@@ -69,12 +69,13 @@ sample_layer_control = function(json) {
     }
     return this.className = newClassName;
   };
-  Array.prototype.move = function(old_index, new_index) {
+  move_in_array = function(array, old_index, new_index) {
     var k;
-    if (new_index >= this.length) {
-      k = new_index - this.length;
+    if (new_index >= array.length) {
+      k = new_index - array.length;
     }
-    return this.splice(new_index, 0, this.splice(old_index, 1)[0]);
+    array.splice(new_index, 0, array.splice(old_index, 1)[0]);
+    return array;
   };
   cloudburstTileLayer = get_cloudburst_tileLayer(json);
   active_layers = [];
@@ -200,7 +201,7 @@ sample_layer_control = function(json) {
       step: step != null ? step : 10,
       stop: function(event, ui) {
         slider_id = parseInt(this.id.split("-").slice(-1)[0]);
-        return active_layers[slider_id].setOpacity(ui.value / 100);
+        active_layers[slider_id].setOpacity(ui.value / 100);
       }
     });
   };
@@ -215,15 +216,14 @@ sample_layer_control = function(json) {
     table_id = table_id != null ? table_id : "layer-table";
     document.getElementById(table_id).innerHTML = null;
     ref = active_layers.reverse();
-    for (j = 0, len = ref.length; j < len; j++) {
-      lyr = ref[j];
+    for (rowi = j = 0, len = ref.length; j < len; rowi = ++j) {
+      lyr = ref[rowi];
       row = document.getElementById(table_id).insertRow(-1);
-      rowi = document.getElementById(table_id).rows.length - 1;
       row.insertCell(0).innerHTML = get_button("remove-layer-" + rowi, ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer']);
       row.insertCell(1).innerHTML = (lyr.getLayerName()) + "<br>" + (lyr.getInstance());
       row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-" + rowi);
       row.insertCell(3).innerHTML = moment(lyr.getTindex(true)).format('LLLL');
-      make_opacity_slider("opacity-slider-" + rowi, lyr);
+      make_opacity_slider("opacity-slider-" + rowi, lyr, lyr.options.opacity * 100);
     }
     $(".remove-layer").click(function() {
       active_layers.splice(parseInt(this.id.split("-").slice(-1)[0]), 1);
@@ -234,7 +234,7 @@ sample_layer_control = function(json) {
         return ui.item.startPos = ui.item.index();
       },
       update: function(event, ui) {
-        active_layers.move(ui.item.startPos, ui.item.index());
+        active_layers = move_in_array(active_layers, ui.item.startPos, ui.item.index());
         return activate_layers();
       }
     }).disableSelection();
@@ -265,14 +265,14 @@ sample_layer_control = function(json) {
   };
   on_modal_layer_change = function(selected_list) {
     var candidateLayer;
-    candidateLayer = $.extend({}, cloudburstTileLayer);
+    candidateLayer = get_cloudburst_tileLayer(json);
     candidateLayer.setLayer($('option:selected', selected_list).attr('title'));
     do_appendElements(false, true);
     document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription();
   };
   on_modal_layer_confirm = function() {
     var selected_lyr;
-    selected_lyr = $.extend({}, cloudburstTileLayer);
+    selected_lyr = get_cloudburst_tileLayer(json);
     selected_lyr.setLayer($('option:selected', $('#layers')).attr('title'));
     selected_lyr.setInstance($('option:selected', $('#instances')).attr('title'));
     active_layers.push(selected_lyr);

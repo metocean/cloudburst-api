@@ -60,12 +60,13 @@ sample_layer_control = (json) ->
         newClassName += classes[i] + " "
     this.className = newClassName
 
-  Array.prototype.move = (old_index, new_index) ->
-    if (new_index >= this.length)
-        k = new_index - this.length
+  move_in_array = (array, old_index, new_index) ->
+    if (new_index >= array.length)
+        k = new_index - array.length
         # while ((k--) + 1)
             # this.push(undefined)
-    this.splice(new_index, 0, this.splice(old_index, 1)[0])
+    array.splice(new_index, 0, array.splice(old_index, 1)[0])
+    return array
 
   cloudburstTileLayer = get_cloudburst_tileLayer(json)
 
@@ -163,6 +164,7 @@ sample_layer_control = (json) ->
         # TODO bugfix: setting the opacity sets it on all active layers?
         slider_id = parseInt(this.id.split("-")[-1..][0])
         active_layers[slider_id].setOpacity(ui.value/100)
+        return
 
   get_opacity_slider = (slider_id)->
     input = document.createElement('div')
@@ -173,14 +175,14 @@ sample_layer_control = (json) ->
     table_id = if table_id? then table_id else "layer-table"
     # Clear table
     document.getElementById(table_id).innerHTML = null
-    for lyr in active_layers.reverse()
+    for lyr, rowi in active_layers.reverse()
       row = document.getElementById(table_id).insertRow(-1)
-      rowi = document.getElementById(table_id).rows.length - 1
+      # rowi = document.getElementById(table_id).rows.length - 1
       row.insertCell(0).innerHTML = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
       row.insertCell(1).innerHTML = "#{lyr.getLayerName()}<br>#{lyr.getInstance()}"
       row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-#{rowi}")
       row.insertCell(3).innerHTML = moment(lyr.getTindex(yes)).format('LLLL')
-      make_opacity_slider("opacity-slider-#{rowi}", lyr)
+      make_opacity_slider("opacity-slider-#{rowi}", lyr, lyr.options.opacity * 100)
     $(".remove-layer").click ->
       active_layers.splice(parseInt(this.id.split("-")[-1..][0]), 1)
       activate_layers()
@@ -188,7 +190,7 @@ sample_layer_control = (json) ->
       start: (event, ui) ->
         ui.item.startPos = ui.item.index()
       update: (event, ui) ->
-        active_layers.move(ui.item.startPos, ui.item.index())
+        active_layers = move_in_array(active_layers, ui.item.startPos, ui.item.index())
         activate_layers()
     .disableSelection()
     return
@@ -207,14 +209,14 @@ sample_layer_control = (json) ->
     create_layer_table()
 
   on_modal_layer_change = (selected_list) ->
-    candidateLayer = $.extend({}, cloudburstTileLayer)
+    candidateLayer = get_cloudburst_tileLayer(json)
     candidateLayer.setLayer($('option:selected', selected_list).attr('title'))
     do_appendElements(no, yes)
     document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription()
     return
 
   on_modal_layer_confirm = ->
-    selected_lyr = $.extend({}, cloudburstTileLayer)
+    selected_lyr = get_cloudburst_tileLayer(json)
     selected_lyr.setLayer $('option:selected', $('#layers')).attr('title')
     selected_lyr.setInstance $('option:selected', $('#instances')).attr('title')
     active_layers.push(selected_lyr)
@@ -238,46 +240,6 @@ sample_layer_control = (json) ->
 
   # Prepare global slider
   make_global_slider(on)
-
-
-
-  # TODO ability to reorder layers
-
-  # $('#step-backward').click ->
-  #   cloudburstTileLayer.back()
-  #   newval = parseInt(cloudburstTileLayer.getTindex())
-  #   if newval == 0
-  #     $('#step-backward').addClass('disabled')
-  #   else
-  #     $('#step-backward').removeClass('disabled')
-  #   $('#step-forward').removeClass('disabled')
-  #   $('#indexes').prop("selectedIndex", newval)
-  #
-  # $('#step-forward').click ->
-  #   cloudburstTileLayer.forward()
-  #   newval = parseInt(cloudburstTileLayer.getTindex())
-  #   if newval == cloudburstTileLayer.getTindexes().length - 1
-  #     $('#step-forward').addClass('disabled')
-  #   else
-  #     $('#step-forward').removeClass('disabled')
-  #   $('#step-backward').removeClass('disabled')
-  #   $('#indexes').prop("selectedIndex", newval)
-
-  # # Make a time slider to control the time
-  # make_slider = ->
-  #   s = $('#ex1').slider
-  #     ticks: (parseInt(t[0]) for t in cloudburstTileLayer.getTindexes(yes))
-  #     # ticks_labels: (t[1] for t in cloudburstTileLayer.getTindexes(yes))
-  #     tick_positions: cloudburstTileLayer.getTindexesAsPercetagePositions()
-  #     ticks_snap_bounds: 1
-  #     value: parseInt(cloudburstTileLayer.getTindex())
-  #     formatter: (value) ->
-  #       cloudburstTileLayer.getTindexes(yes)[value][1]
-  #   .on 'slideStop', ->
-  #     # Refresh the t-index
-  #     cloudburstTileLayer.setTindex(s.val())
-  #
-  # make_slider()
 
 get_host = ->
   'http://localhost:6060'
