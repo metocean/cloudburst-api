@@ -219,11 +219,9 @@ sample_layer_control = (json) ->
 
   on_modal_layer_confirm = ->
     selected_lyr = get_cloudburst_tileLayer(json)
+    selected_lyr.setLayer $('option:selected', $('#layers'))[0].title
+    selected_lyr.setInstance $('option:selected', $('#instances')).val() #$('option:selected', $('#instances')).attr('title')
 
-    selected_lyr.setLayer $('option:selected', $('#layers')).attr('title')
-
-    selected_lyr.setInstance $('option:selected', $('#instances')).attr('title')
-    
     if global_time?
       lyr_moments = (moment(t[1]).unix() for t in selected_lyr.getTindexes(yes))
       selected_moment_str = closest(lyr_moments, global_time)
