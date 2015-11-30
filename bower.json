@@ -1,0 +1,25 @@
+{
+  "name": "cloudburst-api",
+  "homepage": "https://github.com/metocean/cloudburst-api",
+  "authors": [
+    "alpha-beta-soup <r.law@metocean.co.nz>"
+  ],
+  "description": "API for working with Cloudburst tile layers in Leaflet",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.5",
+    "jQuery-ui-Slider-Pips": "jquery-ui-slider-pips#~1.10.7",
+    "moment": "~2.10.6",
+    "leaflet": "~0.7.7"
+  }
+}
