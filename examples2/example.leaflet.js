@@ -276,8 +276,8 @@ sample_layer_control = function(json) {
   on_modal_layer_confirm = function() {
     var lyr_moments, selected_lyr, selected_moment_str, t;
     selected_lyr = get_cloudburst_tileLayer(json);
-    selected_lyr.setLayer($('option:selected', $('#layers')).attr('title'));
-    selected_lyr.setInstance($('option:selected', $('#instances')).attr('title'));
+    selected_lyr.setLayer($('option:selected', $('#layers'))[0].title);
+    selected_lyr.setInstance($('option:selected', $('#instances')).val());
     if (global_time != null) {
       lyr_moments = (function() {
         var j, len, ref, results;
