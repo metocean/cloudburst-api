@@ -1,6 +1,8 @@
-var callback, cloudburst, get_cloudburst_tileLayer, get_host, get_supplementary_tileLayer, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers, supplementaryUrl;
+var callback, cloudburst, get_cloudburst_tileLayer, get_host, get_supplementary_tileLayer, global_time, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers, supplementaryUrl;
 
 supplementaryUrl = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
+
+global_time = void 0;
 
 make_map = function(layers, mapdiv) {
   var map;
@@ -120,6 +122,7 @@ sample_layer_control = function(json) {
             selected_moment_str = closest(lyr_moments, ui.value);
             lyr.setTindex(lyr_moments.indexOf(selected_moment_str));
           }
+          global_time = ui.value;
           return activate_layers();
         },
         slide: function(event, ui) {
@@ -271,10 +274,24 @@ sample_layer_control = function(json) {
     document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription();
   };
   on_modal_layer_confirm = function() {
-    var selected_lyr;
+    var lyr_moments, selected_lyr, selected_moment_str, t;
     selected_lyr = get_cloudburst_tileLayer(json);
     selected_lyr.setLayer($('option:selected', $('#layers')).attr('title'));
     selected_lyr.setInstance($('option:selected', $('#instances')).attr('title'));
+    if (global_time != null) {
+      lyr_moments = (function() {
+        var j, len, ref, results;
+        ref = selected_lyr.getTindexes(true);
+        results = [];
+        for (j = 0, len = ref.length; j < len; j++) {
+          t = ref[j];
+          results.push(moment(t[1]).unix());
+        }
+        return results;
+      })();
+      selected_moment_str = closest(lyr_moments, global_time);
+      selected_lyr.setTindex(lyr_moments.indexOf(selected_moment_str));
+    }
     active_layers.push(selected_lyr);
     return activate_layers();
   };

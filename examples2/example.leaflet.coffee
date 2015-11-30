@@ -1,5 +1,7 @@
 supplementaryUrl = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png'
 
+global_time = undefined
+
 make_map = (layers, mapdiv) ->
   # Create a leaflet map centred over New Zealand with a list of tilelayers
   mapdiv = if mapdiv? then mapdiv else 'map'
@@ -99,6 +101,7 @@ sample_layer_control = (json) ->
             lyr_moments = (moment(t[1]).unix() for t in lyr.getTindexes(yes))
             selected_moment_str = closest(lyr_moments, ui.value)
             lyr.setTindex(lyr_moments.indexOf(selected_moment_str))
+          global_time = ui.value # Global, used when new layers are added
           activate_layers()
         slide: (event, ui) ->
           # TODO this is a bit of a hack
@@ -161,7 +164,6 @@ sample_layer_control = (json) ->
       value: if value? then value else lyr.options.opacity * 100
       step: if step? then step else 10
       stop: (event, ui) ->
-        # TODO bugfix: setting the opacity sets it on all active layers?
         slider_id = parseInt(this.id.split("-")[-1..][0])
         active_layers[slider_id].setOpacity(ui.value/100)
         return
@@ -217,8 +219,16 @@ sample_layer_control = (json) ->
 
   on_modal_layer_confirm = ->
     selected_lyr = get_cloudburst_tileLayer(json)
+
     selected_lyr.setLayer $('option:selected', $('#layers')).attr('title')
+
     selected_lyr.setInstance $('option:selected', $('#instances')).attr('title')
+    
+    if global_time?
+      lyr_moments = (moment(t[1]).unix() for t in selected_lyr.getTindexes(yes))
+      selected_moment_str = closest(lyr_moments, global_time)
+      selected_lyr.setTindex(lyr_moments.indexOf(selected_moment_str))
+
     active_layers.push(selected_lyr)
     activate_layers()
 
