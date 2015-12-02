@@ -124,7 +124,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
     L.TileLayer.prototype.getTileUrl
       .call @, coords
       .replace /\[cloudburst\]/,
-        "#{@_host}/tile/#{@_renderer}/#{@_layer}/#{@_instance}/#{@_tindex}/"
+        "#{@_host}/tile/#{@_renderer}/#{@_layer}/#{@_instance}/#{@_tindex}"
 
   getTindexesAsPercetagePositions: ->
     # Takes an array of datetime strings from @getTindexes, and returns an array

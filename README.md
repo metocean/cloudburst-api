@@ -24,9 +24,14 @@ Note that these layers do no have the same indexes (time steps). This sample app
 
 ![alt text][sample-interface-2-t1]
 
+---
+
 ![alt text][sample-interface-2-t2]
 
+---
+
 ![alt text][sample-interface-2-t3]
+
 
 At the other end of the time range, the same occurs, with the newer forecast extending further into the future than the older one.
 

@@ -162,7 +162,7 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     }
   },
   getTileUrl: function(coords) {
-    return L.TileLayer.prototype.getTileUrl.call(this, coords).replace(/\[cloudburst\]/, this._host + "/tile/" + this._renderer + "/" + this._layer + "/" + this._instance + "/" + this._tindex + "/");
+    return L.TileLayer.prototype.getTileUrl.call(this, coords).replace(/\[cloudburst\]/, this._host + "/tile/" + this._renderer + "/" + this._layer + "/" + this._instance + "/" + this._tindex);
   },
   getTindexesAsPercetagePositions: function() {
     var diff, max_ts, min_ts, t, ts;
