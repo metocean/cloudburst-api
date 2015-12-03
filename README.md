@@ -48,12 +48,12 @@ Of course, you must define your own behaviour for handling partially- or non-ove
 <!-- TODO -->
 
 
-[sample-interface-1]: ./examples1/example.leaflet.interface.png "Sample Leaflet interface"
+[sample-interface-1]: ./examples1/img/example.leaflet.interface.png "Sample Leaflet interface"
 
-[sample-interface-2]: ./examples2/example.leaflet.interface.png "Sample advanced Leaflet interface"
+[sample-interface-2]: ./examples2/img/example.leaflet.interface.png "Sample advanced Leaflet interface"
 
-[sample-interface-2-t1]: ./examples2/example.leaflet.interface.t1.png "Sample advanced Leaflet interface with time step at t1"
+[sample-interface-2-t1]: ./examples2/img/example.leaflet.interface.t1.png "Sample advanced Leaflet interface with time step at t1"
 
-[sample-interface-2-t2]: ./examples2/example.leaflet.interface.t2.png "Sample advanced Leaflet interface with time step at t2"
+[sample-interface-2-t2]: ./examples2/img/example.leaflet.interface.t2.png "Sample advanced Leaflet interface with time step at t2"
 
-[sample-interface-2-t3]: ./examples2/example.leaflet.interface.t3.png "Sample advanced Leaflet interface with time step at t3"
+[sample-interface-2-t3]: ./examples2/img/example.leaflet.interface.t3.png "Sample advanced Leaflet interface with time step at t3"
