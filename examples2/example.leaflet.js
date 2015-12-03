@@ -1,4 +1,4 @@
-var callback, cloudburst, get_cloudburst_tileLayer, get_host, get_supplementary_tileLayer, global_time, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers, supplementaryUrl;
+var callback, cloudburst, get_cloudburst_tileLayer, get_supplementary_tileLayer, global_time, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers, supplementaryUrl;
 
 supplementaryUrl = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
 
@@ -16,9 +16,9 @@ make_map = function(layers, mapdiv) {
   return map;
 };
 
-get_cloudburst_tileLayer = function(json, opacity, zIndex) {
+get_cloudburst_tileLayer = function(host, json, opacity, zIndex) {
   var cloudburstTileLayer;
-  cloudburstTileLayer = L.cloudburstTileLayer(get_host(), json, {
+  cloudburstTileLayer = L.cloudburstTileLayer(host, json, {
     maxZoom: 8,
     maxNativeZoom: 9,
     reuseTiles: true,
@@ -39,26 +39,26 @@ get_supplementary_tileLayer = function() {
   return supplementary;
 };
 
-sample_stack_n_layers = function(json) {
+sample_stack_n_layers = function(json, host) {
   var cloudburstTileLayer, i, j, layers;
   layers = [get_supplementary_tileLayer()];
   for (i = j = 0; j < 3; i = j += 1) {
-    cloudburstTileLayer = get_cloudburst_tileLayer(json, 0.6);
+    cloudburstTileLayer = get_cloudburst_tileLayer(host, json, 0.6);
     cloudburstTileLayer.setLayer(Object.keys(json.layers)[i]);
     layers.push(cloudburstTileLayer);
   }
   return make_map(layers);
 };
 
-sample_add_random_layer = function(json) {
+sample_add_random_layer = function(json, host) {
   var cloudburstTileLayer, randomindex;
-  cloudburstTileLayer = get_cloudburst_tileLayer(json);
+  cloudburstTileLayer = get_cloudburst_tileLayer(host, json);
   randomindex = Math.floor(Math.random() * Object.keys(json.layers).length);
   cloudburstTileLayer.setLayer(Object.keys(json.layers)[randomindex]);
   return make_map([get_supplementary_tileLayer(), cloudburstTileLayer]);
 };
 
-sample_layer_control = function(json) {
+sample_layer_control = function(json, host) {
   var activate_layers, active_layers, appendElements, closest, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_global_slider, make_opacity_slider, map, move_in_array, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property;
   HTMLElement.prototype.removeClass = function(remove) {
     var classes, i, j, newClassName, ref;
@@ -79,7 +79,7 @@ sample_layer_control = function(json) {
     array.splice(new_index, 0, array.splice(old_index, 1)[0]);
     return array;
   };
-  cloudburstTileLayer = get_cloudburst_tileLayer(json);
+  cloudburstTileLayer = get_cloudburst_tileLayer(host, json);
   active_layers = [];
   map = make_map([get_supplementary_tileLayer()]);
   toggle_el_property = function(elem_id, property, off_on) {
@@ -268,14 +268,14 @@ sample_layer_control = function(json) {
   };
   on_modal_layer_change = function(selected_list) {
     var candidateLayer;
-    candidateLayer = get_cloudburst_tileLayer(json);
+    candidateLayer = get_cloudburst_tileLayer(host, json);
     candidateLayer.setLayer($('option:selected', selected_list).attr('title'));
     do_appendElements(false, true);
     document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription();
   };
   on_modal_layer_confirm = function() {
     var lyr_moments, selected_lyr, selected_moment_str, t;
-    selected_lyr = get_cloudburst_tileLayer(json);
+    selected_lyr = get_cloudburst_tileLayer(host, json);
     selected_lyr.setLayer($('option:selected', $('#layers'))[0].title);
     selected_lyr.setInstance($('option:selected', $('#instances')).val());
     if (global_time != null) {
@@ -310,11 +310,7 @@ sample_layer_control = function(json) {
   return make_global_slider(true);
 };
 
-get_host = function() {
-  return 'http://localhost:6060';
-};
-
-cloudburst = new Cloudburst(get_host());
+cloudburst = new Cloudburst();
 
 callback = sample_layer_control;
 

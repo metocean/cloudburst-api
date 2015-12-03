@@ -1,3 +1,5 @@
+logging = off
+
 L.CloudburstTileLayer = L.TileLayer.extend
   options:
     minZoom: 0
@@ -41,7 +43,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
     if (layer in Object.keys(@_config.layers))
       @_layer = layer
       @redraw() if !noRedraw? or !noRedraw
-      console.log("Layer set to: #{@_layer}")
+      if logging is on
+        console.log("Layer set to: #{@_layer}")
     @
 
   getLayer: ->
@@ -75,7 +78,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
     if instance in @getInstances()
       @_instance = instance
       @redraw() if !noRedraw? or !noRedraw
-      console.log("Instance set to: #{@_instance}")
+      if logging is on
+        console.log("Instance set to: #{@_instance}")
     @
 
   getInstance: ->
@@ -95,7 +99,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
     if tindex.toString() in @getTindexes()
       @_tindex = tindex.toString()
       @redraw() if !noRedraw? or !noRedraw
-      console.log("Tindex set to: #{@_tindex}")
+      if logging is on
+        console.log("Tindex set to: #{@_tindex}")
     @
 
   getTindex: (as_time_string) ->
@@ -133,7 +138,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
     # value in the array, and 100 is the highest value.
     # Useful for displaying an array of time values in irregular intervals along
     # a line.
-    ts = (Date.parse(t[1])/1000 for t in @.getTindexes(yes))
+    ts = (Date.parse(t[1])/1000 for t in @getTindexes(yes))
     min_ts = Math.min.apply(null, ts)
     max_ts = Math.max.apply(null, ts)
     diff = max_ts - min_ts

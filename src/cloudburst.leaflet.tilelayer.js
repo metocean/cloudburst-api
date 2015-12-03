@@ -1,4 +1,7 @@
-var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+var logging,
+  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+logging = false;
 
 L.CloudburstTileLayer = L.TileLayer.extend({
   options: {
@@ -51,7 +54,9 @@ L.CloudburstTileLayer = L.TileLayer.extend({
       if ((noRedraw == null) || !noRedraw) {
         this.redraw();
       }
-      console.log("Layer set to: " + this._layer);
+      if (logging === true) {
+        console.log("Layer set to: " + this._layer);
+      }
     }
     return this;
   },
@@ -94,7 +99,9 @@ L.CloudburstTileLayer = L.TileLayer.extend({
       if ((noRedraw == null) || !noRedraw) {
         this.redraw();
       }
-      console.log("Instance set to: " + this._instance);
+      if (logging === true) {
+        console.log("Instance set to: " + this._instance);
+      }
     }
     return this;
   },
@@ -126,7 +133,9 @@ L.CloudburstTileLayer = L.TileLayer.extend({
       if ((noRedraw == null) || !noRedraw) {
         this.redraw();
       }
-      console.log("Tindex set to: " + this._tindex);
+      if (logging === true) {
+        console.log("Tindex set to: " + this._tindex);
+      }
     }
     return this;
   },

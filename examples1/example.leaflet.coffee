@@ -8,9 +8,9 @@ make_map = (layers, mapdiv) ->
   	attributionControl: no
   return map
 
-get_cloudburst_tileLayer = (json) ->
+get_cloudburst_tileLayer = (json, host) ->
   # Create a CloudburstTileLayer
-  cloudburstTileLayer = L.cloudburstTileLayer get_host(), json,
+  cloudburstTileLayer = L.cloudburstTileLayer host, json,
     maxZoom: 8
     maxNativeZoom: 9
     reuseTiles: yes
@@ -27,18 +27,18 @@ get_supplementary_tileLayer = ->
 sample_add_random_layer = (json) ->
   # For this example we are displaying a randomly selected field.
   # Generally you would want to select the field that was relevant to your application.
-  cloudburstTileLayer = get_cloudburst_tileLayer(json)
+  cloudburstTileLayer = get_cloudburst_tileLayer(json, host)
   randomindex = Math.floor(Math.random() * Object.keys(json.layers).length)
   cloudburstTileLayer.setLayer(Object.keys(json.layers)[randomindex])
 
   make_map([get_supplementary_tileLayer(), cloudburstTileLayer])
 
-sample_layer_control = (json) ->
+sample_layer_control = (json, host) ->
   # For this example, we display the first layer, and then add dropdown menus
   # populated from the configuration, that allow the user to change the map
   # display
 
-  cloudburstTileLayer = get_cloudburst_tileLayer(json)
+  cloudburstTileLayer = get_cloudburst_tileLayer(json, host)
 
   make_map([get_supplementary_tileLayer(), cloudburstTileLayer])
 
@@ -96,11 +96,8 @@ sample_layer_control = (json) ->
     $('#step-backward').removeClass('disabled')
     $('#indexes').prop("selectedIndex", newval)
 
-get_host = ->
-  'http://localhost:6060'
-
 # New Cloudburst, given a compatible host
-cloudburst = new Cloudburst(get_host())
+cloudburst = new Cloudburst()
 # Define a callback function, called when the config is ready
 callback = sample_layer_control
 # Load the configuration file, and launch your own callback

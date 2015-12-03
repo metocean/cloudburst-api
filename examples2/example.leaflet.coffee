@@ -12,9 +12,9 @@ make_map = (layers, mapdiv) ->
   	attributionControl: no
   return map
 
-get_cloudburst_tileLayer = (json, opacity, zIndex) ->
+get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
   # Create a CloudburstTileLayer
-  cloudburstTileLayer = L.cloudburstTileLayer get_host(), json,
+  cloudburstTileLayer = L.cloudburstTileLayer host, json,
     maxZoom: 8
     maxNativeZoom: 9
     reuseTiles: yes
@@ -31,25 +31,25 @@ get_supplementary_tileLayer = ->
   	detectRetina: yes
   return supplementary
 
-sample_stack_n_layers = (json) ->
+sample_stack_n_layers = (json, host) ->
   layers = [get_supplementary_tileLayer()]
   for i in [0...3] by 1
-    cloudburstTileLayer = get_cloudburst_tileLayer(json, 0.6)
+    cloudburstTileLayer = get_cloudburst_tileLayer(host, json, 0.6)
     cloudburstTileLayer.setLayer(Object.keys(json.layers)[i])
     layers.push cloudburstTileLayer
 
   make_map layers
 
-sample_add_random_layer = (json) ->
+sample_add_random_layer = (json, host) ->
   # For this example we are displaying a randomly selected field.
   # Generally you would want to select the field that was relevant to your application.
-  cloudburstTileLayer = get_cloudburst_tileLayer(json)
+  cloudburstTileLayer = get_cloudburst_tileLayer(host, json)
   randomindex = Math.floor(Math.random() * Object.keys(json.layers).length)
   cloudburstTileLayer.setLayer(Object.keys(json.layers)[randomindex])
 
   make_map([get_supplementary_tileLayer(), cloudburstTileLayer])
 
-sample_layer_control = (json) ->
+sample_layer_control = (json, host) ->
   # For this example, we display the first layer, and then add dropdown menus
   # populated from the configuration, that allow the user to change the map
   # display, as well as a time slider
@@ -70,7 +70,7 @@ sample_layer_control = (json) ->
     array.splice(new_index, 0, array.splice(old_index, 1)[0])
     return array
 
-  cloudburstTileLayer = get_cloudburst_tileLayer(json)
+  cloudburstTileLayer = get_cloudburst_tileLayer(host, json)
 
   active_layers = []
 
@@ -104,7 +104,7 @@ sample_layer_control = (json) ->
           global_time = ui.value # Global, used when new layers are added
           activate_layers()
         slide: (event, ui) ->
-          # TODO this is a bit of a hack
+          # this is a bit of a hack
           $('[data-toggle="tooltip"]').prop('title', moment.unix(ui.value).format('LLLL'))
           return
       .slider "pips",
@@ -211,14 +211,14 @@ sample_layer_control = (json) ->
     create_layer_table()
 
   on_modal_layer_change = (selected_list) ->
-    candidateLayer = get_cloudburst_tileLayer(json)
+    candidateLayer = get_cloudburst_tileLayer(host, json)
     candidateLayer.setLayer($('option:selected', selected_list).attr('title'))
     do_appendElements(no, yes)
     document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription()
     return
 
   on_modal_layer_confirm = ->
-    selected_lyr = get_cloudburst_tileLayer(json)
+    selected_lyr = get_cloudburst_tileLayer(host, json)
     selected_lyr.setLayer $('option:selected', $('#layers'))[0].title
     selected_lyr.setInstance $('option:selected', $('#instances')).val() #$('option:selected', $('#instances')).attr('title')
 
@@ -249,11 +249,8 @@ sample_layer_control = (json) ->
   # Prepare global slider
   make_global_slider(on)
 
-get_host = ->
-  'http://localhost:6060'
-
 # New Cloudburst, given a compatible host
-cloudburst = new Cloudburst(get_host())
+cloudburst = new Cloudburst()
 # Define a callback function, called when the config is ready
 callback = sample_layer_control
 # Load the configuration file, and launch your own callback
