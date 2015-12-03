@@ -1,40 +1,66 @@
-var key, layers, map;
+var init, main;
 
-key = "20865bd31bcc4e4dbea2181b9a23d825";
-
-layers = [
-  new ol.layer.Tile({
+init = function(json, host) {
+  var basemap, cb, change_header, map, osm;
+  cb = new CloudburstOL3(json, host);
+  cb.setLayer('ncep_mslp');
+  cb.setOL3LayerTile();
+  basemap = new ol.layer.Tile({
+    source: new ol.source.XYZ({
+      attributons: [
+        new ol.Attribution({
+          html: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+        })
+      ],
+      url: 'http://{a-c}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+    })
+  });
+  osm = new ol.layer.Tile({
     source: new ol.source.XYZ({
       attributions: [
         new ol.Attribution({
-          html: 'TODO'
-        })
+          html: '&copy; <a href="http://www.openseamap.org/">OpenSeaMap</a>'
+        }, ol.source.OSM.ATTRIBUTION)
       ],
-      maxZoom: 21,
-      tileUrlFunction: function(tileCoord, pixelRatio, projection) {
-        var instance, layer, renderer, t, url, x, y, z;
-        z = tileCoord[0];
-        x = tileCoord[1];
-        y = tileCoord[2] + (1 << z);
-        renderer = 'mpl';
-        layer = 'ncep_hs';
-        instance = '20150922_12z';
-        t = 0;
-        url = "http://localhost:6060/tile/" + renderer + "/" + layer + "/" + instance + "/" + t + "/" + z + "/" + x + "/" + y + ".png";
-        console.log(url);
-        return url;
-      }
+      crossOrigin: null,
+      url: 'http://t1.openseamap.org/seamark/{z}/{x}/{y}.png'
     })
-  })
-];
+  });
+  map = new ol.Map({
+    target: 'map',
+    renderer: 'canvas',
+    layers: [basemap, cb.tileLayer, osm],
+    view: new ol.View({
+      center: new ol.proj.fromLonLat([174.7772, -41.2889]),
+      zoom: 5
+    })
+  });
+  change_header = function(new_t) {
+    var t;
+    t = document.getElementById('time');
+    if (t != null) {
+      t.innerHTML = ": " + new_t;
+    }
+  };
+  return $(document).ready(function() {
+    return setInterval(function() {
+      var source;
+      cb.forward();
+      change_header(cb.getTindex(true));
+      cb.setOL3LayerTile({
+        'opacity': 0.1,
+        'visible': false
+      });
+      map.getLayers().set(1, cb.tileLayer);
+      source = map.getLayers().item(1).getSource();
+      return source.setTileLoadFunction(source.getTileLoadFunction());
+    }, 10 * 1000);
+  });
+};
 
-console.log(layers);
-
-map = new ol.Map({
-  target: 'map',
-  layers: layers,
-  view: new ol.View({
-    center: new ol.proj.fromLonLat([174.7772, -41.2889]),
-    zoom: 4
-  })
-});
+main = function() {
+  var callback, cloudburst;
+  cloudburst = new Cloudburst();
+  callback = init;
+  return cloudburst.loadConfiguration(callback);
+};
