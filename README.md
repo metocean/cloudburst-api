@@ -1,5 +1,7 @@
 JavaScript API for **Cloudburst**, the MetOcean Solutions tile server.
 
+Use of the Leaflet API in particular is recommended and encouraged!
+
 ## Sample Leaflet interface
 
 ### Simple
@@ -41,11 +43,13 @@ Of course, you must define your own behaviour for handling partially- or non-ove
 
 ## Sample OpenLayers3 interface
 
-<!-- TODO -->
+![alt text][sample-interface-ol3]
 
 ## Sample Google Maps interface
 
-<!-- TODO -->
+To use the Google Maps API, add a new custom OverlayMapType (see example):
+
+![alt text][sample-interface-gm]
 
 
 [sample-interface-1]: ./examples1/img/example.leaflet.interface.png "Sample Leaflet interface"
@@ -57,3 +61,7 @@ Of course, you must define your own behaviour for handling partially- or non-ove
 [sample-interface-2-t2]: ./examples2/img/example.leaflet.interface.t2.png "Sample advanced Leaflet interface with time step at t2"
 
 [sample-interface-2-t3]: ./examples2/img/example.leaflet.interface.t3.png "Sample advanced Leaflet interface with time step at t3"
+
+[sample-interface-gm]: ./examples1/img/example.gm.interface.png "Sample Google Maps API interface"
+
+[sample-interface-ol3]: ./examples1/img/example.ol3.interface.png "Sample OpenLayers3 interface"
