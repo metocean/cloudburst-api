@@ -26,7 +26,7 @@ get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
 
 get_supplementary_tileLayer = ->
   supplementary = L.tileLayer supplementaryUrl,
-  	maxZoom: 9
+  	maxZoom: 14
   	reuseTiles: yes
   	detectRetina: yes
   return supplementary

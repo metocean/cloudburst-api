@@ -32,7 +32,7 @@ get_cloudburst_tileLayer = function(host, json, opacity, zIndex) {
 get_supplementary_tileLayer = function() {
   var supplementary;
   supplementary = L.tileLayer(supplementaryUrl, {
-    maxZoom: 9,
+    maxZoom: 14,
     reuseTiles: true,
     detectRetina: true
   });
