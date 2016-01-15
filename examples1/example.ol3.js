@@ -54,7 +54,7 @@ init = function(json, host) {
       map.getLayers().set(1, cb.tileLayer);
       source = map.getLayers().item(1).getSource();
       return source.setTileLoadFunction(source.getTileLoadFunction());
-    }, 10 * 1000);
+    }, 15 * 1000);
   });
 };
 

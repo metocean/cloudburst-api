@@ -54,7 +54,7 @@ init = (json, host) ->
       source = map.getLayers().item(1).getSource()
       # Refresh the tiles
       source.setTileLoadFunction(source.getTileLoadFunction());
-    , 10*1000
+    , 15*1000
 
 main = ->
   # New Cloudburst, given a compatible host

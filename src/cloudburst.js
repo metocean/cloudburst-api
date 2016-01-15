@@ -2,7 +2,7 @@ var Cloudburst;
 
 Cloudburst = (function() {
   function Cloudburst() {
-    this.url = 'http://localhost:6060';
+    this.url = 'http://www.metoceanview.com:6060';
   }
 
   Cloudburst.prototype.loadConfiguration = function(cb) {
