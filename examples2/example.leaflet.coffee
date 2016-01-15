@@ -15,8 +15,8 @@ make_map = (layers, mapdiv) ->
 get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
   # Create a CloudburstTileLayer
   cloudburstTileLayer = L.cloudburstTileLayer host, json,
-    maxZoom: 8
-    maxNativeZoom: 9
+    maxZoom: 14
+    maxNativeZoom: 14
     reuseTiles: yes
     detectRetina: yes
     opacity: if opacity? then opacity else 1.0

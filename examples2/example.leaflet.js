@@ -19,8 +19,8 @@ make_map = function(layers, mapdiv) {
 get_cloudburst_tileLayer = function(host, json, opacity, zIndex) {
   var cloudburstTileLayer;
   cloudburstTileLayer = L.cloudburstTileLayer(host, json, {
-    maxZoom: 8,
-    maxNativeZoom: 9,
+    maxZoom: 14,
+    maxNativeZoom: 14,
     reuseTiles: true,
     detectRetina: true,
     opacity: opacity != null ? opacity : 1.0,
