@@ -10,13 +10,14 @@ make_map = (layers, mapdiv) ->
   	center: new L.LatLng -37.7772, 175.2756
   	zoom: 6
   	attributionControl: no
+  # map.on 'click', (e) -> alert "Lat (#{e.latlng.lat}, lon (#{e.latlng.lng})"
   return map
 
 get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
   # Create a CloudburstTileLayer
   cloudburstTileLayer = L.cloudburstTileLayer host, json,
-    maxZoom: 14
-    maxNativeZoom: 14
+    maxZoom: 21
+    maxNativeZoom: 21
     reuseTiles: yes
     detectRetina: yes
     opacity: if opacity? then opacity else 1.0
@@ -144,7 +145,7 @@ sample_layer_control = (json, host) ->
       appendElements('layers', 'option', lyr[1].meta.name, lyr[0]) for lyr in cloudburstTileLayer.getLayers(yes)
     if (!refresh_instances? or refresh_instances)
       removeOptions('instances')
-      appendElements('instances', 'option', lyr) for lyr in cloudburstTileLayer.getInstances()
+      appendElements('instances', 'option', instance) for instance in cloudburstTileLayer.getInstances()
     return
 
   get_button = (id, icon_classes, button_classes) ->
@@ -211,10 +212,9 @@ sample_layer_control = (json, host) ->
     create_layer_table()
 
   on_modal_layer_change = (selected_list) ->
-    candidateLayer = get_cloudburst_tileLayer(host, json)
-    candidateLayer.setLayer($('option:selected', selected_list).attr('title'))
-    do_appendElements(no, yes)
-    document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription()
+    cloudburstTileLayer.setLayer($('option:selected', selected_list).attr('title'))
+    do_appendElements(no, yes) # update instances for this layer
+    document.getElementById("modal-layer-info").innerHTML = cloudburstTileLayer.getLayerDescription()
     return
 
   on_modal_layer_confirm = ->

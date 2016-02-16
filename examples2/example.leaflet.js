@@ -19,8 +19,8 @@ make_map = function(layers, mapdiv) {
 get_cloudburst_tileLayer = function(host, json, opacity, zIndex) {
   var cloudburstTileLayer;
   cloudburstTileLayer = L.cloudburstTileLayer(host, json, {
-    maxZoom: 14,
-    maxNativeZoom: 14,
+    maxZoom: 21,
+    maxNativeZoom: 21,
     reuseTiles: true,
     detectRetina: true,
     opacity: opacity != null ? opacity : 1.0,
@@ -167,7 +167,7 @@ sample_layer_control = function(json, host) {
     document.getElementById(container_id).appendChild(el);
   };
   do_appendElements = function(refresh_layers, refresh_instances) {
-    var j, l, len, len1, lyr, ref, ref1;
+    var instance, j, l, len, len1, lyr, ref, ref1;
     if ((refresh_layers == null) || refresh_layers) {
       removeOptions('layers');
       ref = cloudburstTileLayer.getLayers(true);
@@ -180,8 +180,8 @@ sample_layer_control = function(json, host) {
       removeOptions('instances');
       ref1 = cloudburstTileLayer.getInstances();
       for (l = 0, len1 = ref1.length; l < len1; l++) {
-        lyr = ref1[l];
-        appendElements('instances', 'option', lyr);
+        instance = ref1[l];
+        appendElements('instances', 'option', instance);
       }
     }
   };
@@ -267,11 +267,9 @@ sample_layer_control = function(json, host) {
     return create_layer_table();
   };
   on_modal_layer_change = function(selected_list) {
-    var candidateLayer;
-    candidateLayer = get_cloudburst_tileLayer(host, json);
-    candidateLayer.setLayer($('option:selected', selected_list).attr('title'));
+    cloudburstTileLayer.setLayer($('option:selected', selected_list).attr('title'));
     do_appendElements(false, true);
-    document.getElementById("modal-layer-info").innerHTML = candidateLayer.getLayerDescription();
+    document.getElementById("modal-layer-info").innerHTML = cloudburstTileLayer.getLayerDescription();
   };
   on_modal_layer_confirm = function() {
     var lyr_moments, selected_lyr, selected_moment_str, t;

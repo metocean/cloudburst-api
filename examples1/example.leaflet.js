@@ -15,8 +15,8 @@ make_map = function(layers, mapdiv) {
 get_cloudburst_tileLayer = function(json, host) {
   var cloudburstTileLayer;
   cloudburstTileLayer = L.cloudburstTileLayer(host, json, {
-    maxZoom: 8,
-    maxNativeZoom: 9,
+    maxZoom: 21,
+    maxNativeZoom: 21,
     reuseTiles: true,
     detectRetina: true
   });
@@ -26,7 +26,7 @@ get_cloudburst_tileLayer = function(json, host) {
 get_supplementary_tileLayer = function() {
   var supplementary;
   supplementary = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png', {
-    maxZoom: 9,
+    maxZoom: 21,
     reuseTiles: true,
     detectRetina: true
   });
@@ -58,7 +58,7 @@ sample_layer_control = function(json, host) {
     document.getElementById(container_id).appendChild(el);
   };
   do_appendElements = function(refresh_layers, refresh_instances, refresh_tindexes) {
-    var i, j, k, len, len1, len2, lyr, ref, ref1, ref2;
+    var i, instances, j, k, len, len1, len2, lyr, ref, ref1, ref2, tindex;
     if ((refresh_layers == null) || refresh_layers) {
       removeOptions('layers');
       ref = cloudburstTileLayer.getLayers(true);
@@ -71,16 +71,17 @@ sample_layer_control = function(json, host) {
       removeOptions('instances');
       ref1 = cloudburstTileLayer.getInstances();
       for (j = 0, len1 = ref1.length; j < len1; j++) {
-        lyr = ref1[j];
-        appendElements('instances', 'option', lyr);
+        instances = ref1[j];
+        appendElements('instances', 'option', instances);
       }
+      cloudburstTileLayer.setInstance($('#instances').val());
     }
     if ((refresh_tindexes == null) || refresh_tindexes) {
       removeOptions('indexes');
       ref2 = cloudburstTileLayer.getTindexes(true);
       for (k = 0, len2 = ref2.length; k < len2; k++) {
-        lyr = ref2[k];
-        appendElements('indexes', 'option', lyr[1], lyr[0]);
+        tindex = ref2[k];
+        appendElements('indexes', 'option', tindex[1], tindex[0]);
       }
     }
   };

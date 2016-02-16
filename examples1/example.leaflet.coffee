@@ -11,15 +11,15 @@ make_map = (layers, mapdiv) ->
 get_cloudburst_tileLayer = (json, host) ->
   # Create a CloudburstTileLayer
   cloudburstTileLayer = L.cloudburstTileLayer host, json,
-    maxZoom: 8
-    maxNativeZoom: 9
+    maxZoom: 21
+    maxNativeZoom: 21
     reuseTiles: yes
     detectRetina: yes
   return cloudburstTileLayer
 
 get_supplementary_tileLayer = ->
   supplementary = L.tileLayer 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
-  	maxZoom: 9
+  	maxZoom: 21
   	reuseTiles: yes
   	detectRetina: yes
   return supplementary
@@ -59,10 +59,11 @@ sample_layer_control = (json, host) ->
       appendElements('layers', 'option', lyr[1].meta.name, lyr[0]) for lyr in cloudburstTileLayer.getLayers(yes)
     if (!refresh_instances? or refresh_instances)
       removeOptions('instances')
-      appendElements('instances', 'option', lyr) for lyr in cloudburstTileLayer.getInstances()
+      appendElements('instances', 'option', instances) for instances in cloudburstTileLayer.getInstances()
+      cloudburstTileLayer.setInstance($('#instances').val()) # Default to first instance
     if (!refresh_tindexes? or refresh_tindexes)
       removeOptions('indexes')
-      appendElements('indexes', 'option', lyr[1], lyr[0]) for lyr in cloudburstTileLayer.getTindexes(yes)
+      appendElements('indexes', 'option', tindex[1], tindex[0]) for tindex in cloudburstTileLayer.getTindexes(yes)
     return
 
   # Controlling the drop-down menus for layer control

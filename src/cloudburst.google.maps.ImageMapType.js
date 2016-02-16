@@ -10,7 +10,7 @@ CloudburstMapType = function(config, host, map) {
   this._layers = this.getLayers();
   this._map = map;
   this.opacity = 0.5;
-  this.setLayer(this._layers[2], false);
+  this.setLayer(this._layers[3], false);
   this.setInstance(this.getInstances()[0], false);
   this.setTindex(this.getTindexes()[0], false);
   this.setRenderer('mpl', false);

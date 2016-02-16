@@ -8,7 +8,7 @@ CloudburstMapType = (config, host, map) ->
   @_map = map
   @opacity = 0.5
 
-  @setLayer(@_layers[2], no)
+  @setLayer(@_layers[3], no)
   @setInstance(@getInstances()[0], no)
   @setTindex(@getTindexes()[0], no)
   @setRenderer('mpl', no) # TODO

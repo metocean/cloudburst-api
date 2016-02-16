@@ -2,7 +2,8 @@
 
 class Cloudburst
   constructor: ->
-    @url = 'http://www.metoceanview.com:6060'
+    # @url = 'http://www.metoceanview.com:6060'
+    @url = 'http://localhost:6060'
 
   loadConfiguration: (cb) ->
     json_config = JSON.parse(JSON.stringify(@url))
