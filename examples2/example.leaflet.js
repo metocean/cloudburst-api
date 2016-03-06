@@ -1,8 +1,10 @@
-var callback, cloudburst, get_cloudburst_tileLayer, get_supplementary_tileLayer, global_time, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers, supplementaryUrl;
+var callback, cloudburst, debug, get_cloudburst_tileLayer, get_supplementary_tileLayer, global_time, make_map, sample_add_random_layer, sample_layer_control, sample_stack_n_layers, supplementaryUrl;
 
 supplementaryUrl = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
 
 global_time = void 0;
+
+debug = false;
 
 make_map = function(layers, mapdiv) {
   var map;
@@ -13,6 +15,11 @@ make_map = function(layers, mapdiv) {
     zoom: 6,
     attributionControl: false
   });
+  if (debug === true) {
+    map.on('click', function(e) {
+      return alert("Lat (" + e.latlng.lat + ", lon (" + e.latlng.lng + ")");
+    });
+  }
   return map;
 };
 
@@ -95,7 +102,7 @@ sample_layer_control = function(json, host) {
       }
     });
   };
-  make_global_slider = function(off_on, values, step, slider_class, slider_id) {
+  make_global_slider = function(off_on, values, slider_class, slider_id) {
     var $pips, j, len, t, tooltip, val;
     toggle_el_property(slider_id, 'hidden', off_on);
     if (values != null) {
@@ -104,7 +111,6 @@ sample_layer_control = function(json, host) {
       $("." + slider_class).slider({
         min: Math.min.apply(Math, values),
         max: Math.max.apply(Math, values),
-        step: step != null ? step : 10800,
         change: function(event, ui) {
           var j, len, lyr, lyr_moments, selected_moment_str;
           for (j = 0, len = active_layers.length; j < len; j++) {

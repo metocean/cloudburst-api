@@ -2,6 +2,8 @@ supplementaryUrl = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.p
 
 global_time = undefined
 
+debug = off
+
 make_map = (layers, mapdiv) ->
   # Create a leaflet map centred over New Zealand with a list of tilelayers
   mapdiv = if mapdiv? then mapdiv else 'map'
@@ -10,7 +12,8 @@ make_map = (layers, mapdiv) ->
   	center: new L.LatLng -37.7772, 175.2756
   	zoom: 6
   	attributionControl: no
-  # map.on 'click', (e) -> alert "Lat (#{e.latlng.lat}, lon (#{e.latlng.lng})"
+  if debug is on
+    map.on 'click', (e) -> alert "Lat (#{e.latlng.lat}, lon (#{e.latlng.lng})"
   return map
 
 get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
@@ -87,7 +90,7 @@ sample_layer_control = (json, host) ->
     array.reduce (prev, curr) ->
       if (Math.abs(curr - target) < Math.abs(prev - target)) then curr else prev
 
-  make_global_slider = (off_on, values, step, slider_class, slider_id) ->
+  make_global_slider = (off_on, values, slider_class, slider_id) ->
     toggle_el_property(slider_id, 'hidden', off_on)
     if values?
       slider_class = if slider_class? then slider_class else 'slider'
@@ -96,7 +99,6 @@ sample_layer_control = (json, host) ->
       .slider
         min: Math.min.apply(Math, values)
         max: Math.max.apply(Math, values)
-        step: if step? then step else 10800 # Smallest step present in values
         change: (event, ui) ->
           for lyr in active_layers
             lyr_moments = (moment(t[1]).unix() for t in lyr.getTindexes(yes))
@@ -116,8 +118,7 @@ sample_layer_control = (json, host) ->
 
       # Filter pips, marking them along the slider at appropriate and possibly irregular intervals
       $pips = $(".#{slider_class}").find(".ui-slider-pip") # Hold all the pips for filtering
-      for val in values
-        $pips.filter(".ui-slider-pip-#{val}").show()
+      $pips.filter(".ui-slider-pip-#{val}").show() for val in values
 
       # Tooltip of slider drag button
       # TODO this is a bit of a hack
