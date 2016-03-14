@@ -1,4 +1,4 @@
-logging = off
+logging = on
 
 L.CloudburstTileLayer = L.TileLayer.extend
   options:
@@ -18,8 +18,14 @@ L.CloudburstTileLayer = L.TileLayer.extend
     @_layers = @getLayers()
 
     # Select the first available layer, and first instance, index
-    @setLayer(@_layers[0], no)
-    @setInstance(@getInstances()[0], no)
+    layer_i = 0
+    while !@_instance and layer_i < @_layers.length
+        @setLayer(@_layers[layer_i], no)
+        @setInstance(@getInstances()[0], no)
+        if !@_instance
+            layer_i = layer_i + 1
+            console.log("WARNING: no instances of layer #{@_layer} found")
+
     @setTindex(@getTindexes()[0], no)
     @setRenderer('mpl', no) # TODO
 
@@ -75,6 +81,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
       Object.keys(@_config.layers[@_layer].instances)
 
   setInstance: (instance, noRedraw) ->
+    if !instance?
+      console.log("WARNING: instance undefined")
     if instance in @getInstances()
       @_instance = instance
       @redraw() if !noRedraw? or !noRedraw
