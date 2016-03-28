@@ -72,6 +72,17 @@
     getLayer: function() {
       return this._layer;
     },
+    getLayerLegendUrl: function(size, orientation) {
+      var layerurl;
+      if ((size == null) || !size) {
+        size = "small";
+      }
+      if ((orientation == null) || !orientation) {
+        orientation = "horiztonal";
+      }
+      layerurl = "" + this._host + "/legend/" + size + "/" + orientation + "/" + (this.getLayer()) + ".png";
+      return layerurl;
+    },
     getLayerMetadata: function() {
       if (this._layer != null) {
         return this._config.layers[this._layer].meta;

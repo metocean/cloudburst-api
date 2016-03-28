@@ -27,7 +27,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
             console.log("WARNING: no instances of layer #{@_layer} found")
 
     @setTindex(@getTindexes()[0], no)
-    @setRenderer('mpl', no) # TODO
+    @setRenderer('mpl', no)
 
     L.TileLayer.prototype.initialize.call @, "[cloudburst]/{z}/{x}/{y}.png", options
 
@@ -55,6 +55,14 @@ L.CloudburstTileLayer = L.TileLayer.extend
 
   getLayer: ->
     @_layer
+
+  getLayerLegendUrl: (size, orientation) ->
+    if !size? or !size
+      size = "small" # or "large"
+    if !orientation? or !orientation
+      orientation = "horiztonal"
+    layerurl = "#{@_host}/legend/#{size}/#{orientation}/#{@getLayer()}.png"
+    return layerurl
 
   getLayerMetadata: ->
     if @_layer?

@@ -186,6 +186,8 @@ sample_layer_control = (json, host) ->
       row.insertCell(1).innerHTML = "#{lyr.getLayerName()}<br>#{lyr.getInstance()}"
       row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-#{rowi}")
       row.insertCell(3).innerHTML = moment(lyr.getTindex(yes)).format('LLLL')
+      legendsrc = lyr.getLayerLegendUrl('small', 'horizontal')
+      row.insertCell(4).innerHTML = "<img src=\"#{legendsrc}\" alt='' />"
       make_opacity_slider("opacity-slider-#{rowi}", lyr, lyr.options.opacity * 100)
     $(".remove-layer").click ->
       active_layers.splice(parseInt(this.id.split("-")[-1..][0]), 1)
