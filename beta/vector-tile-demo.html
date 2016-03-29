@@ -25,39 +25,43 @@
 			id: 'mapbox.streets'
 		}).addTo(mymap);
 
-    //     L.tileLayer('http://www.metoceanview.com:6060/tile/mpl/ncep_mslp/20160114_12z/0/{z}/{x}/{y}.png', {
-    //         tms: true,
-    //         maxZoom: 18
+    // L.tileLayer(
+    //   'http://www.metoceanview.com:6060/tile/mpl/ncep_mslp/20160114_12z/0/{z}/{x}/{y}.png',
+    //   //'http://localhost:6060/tile/mpl/ncep_mslp/20160114_12z/0/{z}/{x}/{y}.png',
+    //   {
+    //     tms: true,
+    //     maxZoom: 18
 		// }).addTo(mymap);
 
-        var mvtconfig ={
-            tms: false,
-            url: 'http://www.metoceanview.com:6060/tile/pbf/ncep_mslp_pbf/20160114_12z/0/{z}/{x}/{y}.pbf',
-            debug: false,
-						getIDForLayerFeature: function(feature) {
-								// return 0;
-								return feature.properties.level;
-            },
-            filter: function(feature, context) {
-                return true; // TODO
-            },
-						style: function(feature) {
-							var style = {};
-							style.color = 'rgb(0,0,0)';
-							style.size = 3;
-							// style.outline = 5;
-							style.selected = {
-								color: 'rgba(255,25,0,0.5)',
-								size: 6,
-								// outline: 7
-							};
-							return style;
-						}
-            // style, layerLink, onClick, scope, xhrHeaders
-        }
+    var mvtconfig ={
+        tms: false,
+        url: 'http://www.metoceanview.com:6060/tile/pbf/ncep_mslp_pbf/20160114_12z/0/{z}/{x}/{y}.pbf',
+        // url: 'http://localhost:6060/tile/pbf/ncep_mslp_pbf/20160114_12z/0/{z}/{x}/{y}.pbf',
+        debug: false,
+				getIDForLayerFeature: function(feature) {
+						// return 0;
+						return feature.properties.level;
+        },
+        filter: function(feature, context) {
+            return true; // TODO
+        },
+				style: function(feature) {
+					var style = {};
+					style.color = 'rgb(0,0,0)';
+					style.size = 3;
+					// style.outline = 5;
+					style.selected = {
+						color: 'rgba(255,255,0,0.5)',
+						size: 6,
+						// outline: 7
+					};
+					return style;
+				}
+        // style, layerLink, onClick, scope, xhrHeaders
+    }
 
-        var mvtSource = new L.TileLayer.MVTSource(mvtconfig);
-        mymap.addLayer(mvtSource);
+    var mvtSource = new L.TileLayer.MVTSource(mvtconfig);
+    mymap.addLayer(mvtSource);
 
 		// var popup = L.popup();
 		//
