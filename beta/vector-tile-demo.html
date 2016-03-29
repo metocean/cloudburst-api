@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Vector Tiles Demo</title>
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+</head>
+<body>
+	<div id="mapid" style="width: 100%; height: 700px"></div>
+
+	<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+    <script src="https://raw.githubusercontent.com/SpatialServer/Leaflet.MapboxVectorTile/master/dist/Leaflet.MapboxVectorTile.min.js"></script>
+	<script>
+
+		var mymap = L.map('mapid').setView([51.505, -0.09], 5);
+
+		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'mapbox.streets'
+		}).addTo(mymap);
+
+    //     L.tileLayer('http://www.metoceanview.com:6060/tile/mpl/ncep_mslp/20160114_12z/0/{z}/{x}/{y}.png', {
+    //         tms: true,
+    //         maxZoom: 18
+		// }).addTo(mymap);
+
+        var mvtconfig ={
+            tms: false,
+            url: 'http://www.metoceanview.com:6060/tile/pbf/ncep_mslp_pbf/20160114_12z/0/{z}/{x}/{y}.pbf',
+            debug: false,
+						getIDForLayerFeature: function(feature) {
+								// return 0;
+								return feature.properties.level;
+            },
+            filter: function(feature, context) {
+                return true; // TODO
+            },
+						style: function(feature) {
+							var style = {};
+							style.color = 'rgb(0,0,0)';
+							style.size = 3;
+							// style.outline = 5;
+							style.selected = {
+								color: 'rgba(255,25,0,0.5)',
+								size: 6,
+								// outline: 7
+							};
+							return style;
+						}
+            // style, layerLink, onClick, scope, xhrHeaders
+        }
+
+        var mvtSource = new L.TileLayer.MVTSource(mvtconfig);
+        mymap.addLayer(mvtSource);
+
+		// var popup = L.popup();
+		//
+		// function onMapClick(e) {
+		// 	popup
+		// 		.setLatLng(e.latlng)
+		// 		.setContent("You clicked the map at " + e.latlng.toString())
+		// 		.openOn(mymap);
+		// }
+		//
+		// mymap.on('click', onMapClick);
+
+	</script>
+</body>
+</html>
