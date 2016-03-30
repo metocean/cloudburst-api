@@ -65,3 +65,80 @@ To use the Google Maps API, add a new custom OverlayMapType (see example):
 [sample-interface-gm]: ./examples1/img/example.gm.interface.png "Sample Google Maps API interface"
 
 [sample-interface-ol3]: ./examples1/img/example.ol3.interface.png "Sample OpenLayers3 interface"
+
+# Legends
+
+Legends for a layer can be retrieved from `{host}/legend/{size}/{orientation}/{layer}.png`.
+
+Note that `size` must be one of "small" or "large", and `orientation` must be one of "horizontal" or "vertical".
+
+Also note that some layers do not have legends, either because they have not been correctly configured, or they have been purposely disabled (e.g. a layer showing labelled isolines of a single colour does not require a legend).
+
+JSON representations of the legends are also available, at `{host}/legend/{size}/{orientation}/{layer}.json`. Because these include the names of continuous colourmaps that are not accessible to clients, they include a discretised version of the colourmap for a layer, using hex values. The `size` and `orientation` parts of the path have no effect, but are still required.
+
+Example:
+
+```json
+{
+    "wind10": {
+        "contour": {
+            "cmap": "wind",
+            "cmap_discrete": [
+                "#000080",
+                "#0086c3",
+                "#0afff5",
+                "#71ff8e",
+                "#d8ff27",
+                "#ffdb00",
+                "#ffa100",
+                "#ff6700",
+                "#ff2c00",
+                "#e80017",
+                "#890077",
+                "#801e62",
+                "#804040"
+            ],
+            "colors": null,
+            "extend": "max",
+            "hatches": null,
+            "levels": [
+                0,
+                1,
+                3,
+                6,
+                10,
+                16,
+                21,
+                27,
+                33,
+                40,
+                47,
+                55,
+                63
+            ],
+            "linestyles": null,
+            "linewidths": null,
+            "mplkwargs": {
+                "ticks": [
+                    1,
+                    3,
+                    6,
+                    10,
+                    16,
+                    21,
+                    27,
+                    33,
+                    40,
+                    47,
+                    55,
+                    63
+                ]
+            },
+            "unit": "kn (Beaufort scale)"
+        },
+        "quiver": {}
+    }
+}
+```
+
+The PNG versions of the legends are drawn from these JSON representations.
