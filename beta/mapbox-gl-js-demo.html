@@ -19,7 +19,7 @@ var map = new mapboxgl.Map({
     container: 'map', // container id
     style: 'mapbox://styles/mapbox/light-v8', //stylesheet location
     center: [-74.50, 40], // starting position
-    zoom: 9 // starting zoom
+    zoom: 3 // starting zoom
 });
 
 function main() {
@@ -50,6 +50,26 @@ function main() {
         "line-width": 1
       }
     });
+    map.addLayer({
+      "id": "contours-labels",
+      "type": "symbol",
+      "source": "msl",
+      "source-layer": "ncep_mslp_pbf",
+      "layout": {
+        "symbol-placement": "line",
+        "text-field": "{level}",
+        "text-size": 10,
+        "text-anchor": "bottom",
+        "text-padding": 5,
+        "text-rotation-alignment": "viewport"
+      },
+      "paint": {
+        "text-color": "red",
+        "text-halo-color": "white",
+        "text-halo-width": 2
+        // "text-halo-blur": 3
+      }
+    })
     map.addLayer({
       "id": "contours-hover",
       "type": "line",
