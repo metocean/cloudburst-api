@@ -20,64 +20,8 @@
 		<link rel="stylesheet" href="../bower_components/jQuery-ui-Slider-Pips/dist/jquery-ui-slider-pips.css" />
 		<!-- moment.js -->
 		<script src="../bower_components/moment/min/moment.min.js"></script>
-		<style>
-		html, body {
-			height:100%;
-		}
-		#map {
-			height:650px;
-			margin-left:auto;
-    	margin-right:auto;
-			margin-bottom:10px;
-			margin-top:10px;
-		}
-		#modal-layer-info {
-			margin-top:15px;
-		}
-		.slider {
-			width:90%;
-			margin:0 auto;
-			margin-top:5px;
-		}
-		.slider.ui-slider-pips .ui-slider-pip {
-			display: none;
-		}
-		.tooltip {
-	    /*position: absolute;
-	    z-index: 1020;
-	    display: block;
-	    padding: 5px;
-	    font-size: 11px;
-	    visibility: visible;
-	    margin-top: -2px;
-	    bottom:120%;
-	    margin-left: -2em;*/
-		}
 
-		.tooltip .tooltip-arrow {
-	    /*bottom: 0;
-	    left: 50%;
-	    margin-left: -5px;
-	    border-top: 5px solid #000000;
-	    border-right: 5px solid transparent;
-	    border-left: 5px solid transparent;
-	    position: absolute;
-	    width: 0;
-	    height: 0;*/
-		}
-
-		.tooltip-inner {
-	    /*max-width: 200px;
-	    padding: 3px 8px;
-	    color: #ffffff;
-	    text-align: center;
-	    text-decoration: none;
-	    background-color: #000000;
-	    -webkit-border-radius: 4px;
-	       -moz-border-radius: 4px;
-	            border-radius: 4px;*/
-		}
-	  </style>
+	  <link rel="stylesheet" type="text/css" href="./example.leaflet.css"></style>
 		<script src="../src/cloudburst.leaflet.tilelayer.js"></script>
 		<script src="../src/cloudburst.js"></script>
 	</head>
@@ -136,10 +80,12 @@
 						</div>
 						<div class="modal-body" id="modal-body">
 							<div class="row">
-								<div class="col-md-8 btn-group dropup">
+								<div class="col-md-12 btn-group dropup">
 									<select class="btn btn-default btn-md" id="layers"></select>
 								</div>
-								<div class="col-md-4 btn-group dropup">
+								<div class="col-md-1">
+								</div>
+								<div class="col-md-11 btn-group dropup">
 									<select class="btn btn-default btn-md" id="instances"></select>
 								</div>
 							</div>
