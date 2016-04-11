@@ -1,4 +1,4 @@
-var basemap_dark, basemap_light_labels, basemapnames, basemaps, basemaps_urls, callback, cloudburst, debug, eco, get_cloudburst_tileLayer, get_supplementary_tileLayer, global_time, make_map, sample_layer_control, url,
+var basemap_dark, basemap_light_labels, basemapnames, basemaps, basemaps_urls, callback, cloudburst, debug, get_cloudburst_tileLayer, get_supplementary_tileLayer, global_time, make_map, sample_layer_control, url,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 get_supplementary_tileLayer = function(url) {
@@ -17,9 +17,7 @@ basemap_dark = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
 
 basemap_light_labels = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
 
-eco = 'https://cartocdn_{s}.global.ssl.fastly.net/base-eco/{z}/{x}/{y}.png';
-
-basemaps_urls = [basemap_dark, basemap_light_labels, eco];
+basemaps_urls = [basemap_dark, basemap_light_labels];
 
 basemaps = (function() {
   var j, len, results;
@@ -31,12 +29,9 @@ basemaps = (function() {
   return results;
 })();
 
-console.log(basemaps);
-
 basemapnames = {
   'Basemap Dark': basemaps[0],
-  'Basemap Light (Labels)': basemaps[1],
-  'Eco': basemaps[2]
+  'Basemap Light (Labels)': basemaps[1]
 };
 
 global_time = void 0;

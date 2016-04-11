@@ -9,15 +9,12 @@ get_supplementary_tileLayer = (url) ->
 
 basemap_dark = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png'
 basemap_light_labels = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
-eco = 'https://cartocdn_{s}.global.ssl.fastly.net/base-eco/{z}/{x}/{y}.png'
 
-basemaps_urls = [basemap_dark, basemap_light_labels, eco]
+basemaps_urls = [basemap_dark, basemap_light_labels]
 basemaps = (get_supplementary_tileLayer(url) for url in basemaps_urls)
-console.log basemaps
 basemapnames = {
   'Basemap Dark': basemaps[0],
   'Basemap Light (Labels)': basemaps[1],
-  'Eco': basemaps[2]
 }
 
 global_time = undefined
