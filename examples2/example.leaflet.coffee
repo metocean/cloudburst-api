@@ -1,19 +1,42 @@
-supplementaryUrl = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png'
+get_supplementary_tileLayer = (url) ->
+  url = if url? then url else basemap_light
+  supplementary = L.tileLayer url,
+    maxZoom: 21
+    reuseTiles: yes
+    zindex: 0
+    detectRetina: yes
+  return supplementary
+
+basemap_dark = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png'
+basemap_light_labels = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+eco = 'https://cartocdn_{s}.global.ssl.fastly.net/base-eco/{z}/{x}/{y}.png'
+
+basemaps_urls = [basemap_dark, basemap_light_labels, eco]
+basemaps = (get_supplementary_tileLayer(url) for url in basemaps_urls)
+console.log basemaps
+basemapnames = {
+  'Basemap Dark': basemaps[0],
+  'Basemap Light (Labels)': basemaps[1],
+  'Eco': basemaps[2]
+}
 
 global_time = undefined
 
 debug = off
 
-make_map = (layers, mapdiv) ->
-  # Create a leaflet map centred over New Zealand with a list of tilelayers
+make_map = (mapdiv) ->
+  # Create a leaflet map with a list of tilelayers
   mapdiv = if mapdiv? then mapdiv else 'map'
   map = new L.Map mapdiv,
-  	layers: layers
-  	center: new L.LatLng -37.7772, 175.2756
-  	zoom: 6
-  	attributionControl: no
+    layers: basemaps
+    center: new L.LatLng 0, -153
+    zoom: 3
+    attributionControl: yes
   if debug is on
     map.on 'click', (e) -> alert "Lat (#{e.latlng.lat}, lon (#{e.latlng.lng})"
+
+  L.control.layers(basemapnames).addTo(map)
+
   return map
 
 get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
@@ -21,37 +44,12 @@ get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
   cloudburstTileLayer = L.cloudburstTileLayer host, json,
     maxZoom: 21
     maxNativeZoom: 21
-    reuseTiles: yes
+    reuseTiles: no
     detectRetina: yes
     opacity: if opacity? then opacity else 1.0
     zIndex: if zIndex? then zIndex else null
 
   return cloudburstTileLayer
-
-get_supplementary_tileLayer = ->
-  supplementary = L.tileLayer supplementaryUrl,
-  	maxZoom: 14
-  	reuseTiles: yes
-  	detectRetina: yes
-  return supplementary
-
-sample_stack_n_layers = (json, host) ->
-  layers = [get_supplementary_tileLayer()]
-  for i in [0...3] by 1
-    cloudburstTileLayer = get_cloudburst_tileLayer(host, json, 0.6)
-    cloudburstTileLayer.setLayer(Object.keys(json.layers)[i])
-    layers.push cloudburstTileLayer
-
-  make_map layers
-
-sample_add_random_layer = (json, host) ->
-  # For this example we are displaying a randomly selected field.
-  # Generally you would want to select the field that was relevant to your application.
-  cloudburstTileLayer = get_cloudburst_tileLayer(host, json)
-  randomindex = Math.floor(Math.random() * Object.keys(json.layers).length)
-  cloudburstTileLayer.setLayer(Object.keys(json.layers)[randomindex])
-
-  make_map([get_supplementary_tileLayer(), cloudburstTileLayer])
 
 sample_layer_control = (json, host) ->
   # For this example, we display the first layer, and then add dropdown menus
@@ -67,10 +65,6 @@ sample_layer_control = (json, host) ->
     this.className = newClassName
 
   move_in_array = (array, old_index, new_index) ->
-    if (new_index >= array.length)
-        k = new_index - array.length
-        # while ((k--) + 1)
-            # this.push(undefined)
     array.splice(new_index, 0, array.splice(old_index, 1)[0])
     return array
 
@@ -78,8 +72,8 @@ sample_layer_control = (json, host) ->
 
   active_layers = []
 
-  # Start the map with a simple contextual tile layer
-  map = make_map([get_supplementary_tileLayer()])
+  # Start the map with some simple contextual tile layers
+  map = make_map()
 
   toggle_el_property = (elem_id, property, off_on) ->
     console.log "Turning #{elem_id} #{property} #{off_on}"
@@ -181,13 +175,28 @@ sample_layer_control = (json, host) ->
     document.getElementById(table_id).innerHTML = null
     for lyr, rowi in active_layers.reverse()
       row = document.getElementById(table_id).insertRow(-1)
-      # rowi = document.getElementById(table_id).rows.length - 1
-      row.insertCell(0).innerHTML = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
-      row.insertCell(1).innerHTML = "#{lyr.getLayerName()}<br>#{lyr.getInstance()}"
-      row.insertCell(2).innerHTML = get_opacity_slider("opacity-slider-#{rowi}")
-      row.insertCell(3).innerHTML = moment(lyr.getTindex(yes)).format('LLLL')
+      rowi = document.getElementById(table_id).rows.length - 1
+      remove_button = row.insertCell(0)
+      remove_button.innerHTML = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
+      $(remove_button).addClass 'col-md-1'
+
+      layer_name = row.insertCell(1)
+      layer_name.innerHTML = "<strong>#{lyr.getLayerName()}</strong><br>#{lyr.getInstance()}"
+      $(layer_name).addClass 'col-md-3'
+
+      opacity_slider = row.insertCell(2)
+      opacity_slider.innerHTML = get_opacity_slider("opacity-slider-#{rowi}")
+      $(opacity_slider).addClass 'col-md-2'
+
+      dt = row.insertCell(3)
+      dt.innerHTML = moment(lyr.getTindex(yes)).format('LLLL')
+      $(dt).addClass 'col-md-3'
+
       legendsrc = lyr.getLayerLegendUrl('small', 'horizontal')
-      row.insertCell(4).innerHTML = "<img src=\"#{legendsrc}\" alt='' />"
+      legend = row.insertCell(4)
+      legend.innerHTML = "<img src=\"#{legendsrc}\" alt='' />"
+      $(legend).addClass 'col-md-3'
+
       make_opacity_slider("opacity-slider-#{rowi}", lyr, lyr.options.opacity * 100)
     $(".remove-layer").click ->
       active_layers.splice(parseInt(this.id.split("-")[-1..][0]), 1)
@@ -203,12 +212,16 @@ sample_layer_control = (json, host) ->
 
   activate_layers = ->
     map.eachLayer (lyr) ->
-      map.removeLayer(lyr) if !(lyr._url is supplementaryUrl)
+      map.removeLayer(lyr) if !(lyr._url in basemaps_urls)
     # Displays active layers on the map
-    lyr.addTo(map) for lyr in active_layers.reverse()
+    for lyr in active_layers.reverse()
+      lyr.addTo(map) for lyr in active_layers.reverse()
     # Adds indexes to time slider # TODO may not be time
     t_set = new Set()
+    z = basemaps.length + 1
     for lyr in active_layers
+      lyr.setZIndex(if !(lyr._url in basemaps_urls) then z + 1 else 0)
+      z += 1
       t_set.add(moment(t[1]).unix()) for t in lyr.getTindexes(yes)
     make_global_slider(off, Array.from(t_set))
     # Adds all active layers to the table of layers

@@ -27,23 +27,23 @@
 	</head>
 	<body>
 		<div class="container-fluid">
-			<div class="container"
+			<div class="container">
 				<div class="row">
-					<div class="col-md-12" id="map"></div>
-				</div>
-				<div class="row">
-					<div class="col-md-2 btn-group btn-group-md dropup">
-						<button type="button" class="btn btn-success" id="add-item" title="Add a layer" data-toggle="modal" data-target="#addLayerModal">
+					<div class="col-md-12 map-container">
+						<button type="button" class="btn btn-success add-layer" id="add-item" title="Add a layer" data-toggle="modal" data-target="#addLayerModal">
 							<span class="glyphicon glyphicon-plus"></span>
 							<span class="glyphicon glyphicon-globe"></span>
 						</button>
+						<div id="map"></div>
 					</div>
+				</div>
+				<div class="row">
 					<!-- Time slider (global control for all layers) -->
 					<!-- <div class="col-md-10">
 						<input id="global-time-slider" data-slider-id='global-time-slider' type="text" />
 					</div> -->
-					<div class="col-md-10">
-						<div id="global-slider" class="slider" disable="disabled"></div>
+					<div class="slider-container col-md-12">
+					  <div id="global-slider" class="slider" disable="enabled"></div>
 					</div>
 				</div>
 				<div class="row">
@@ -70,7 +70,7 @@
 		</div>
 
 		<!-- Popup modal -->
-		<div class="container">
+		<div class="modal-container">
 			<div id="addLayerModal" class="modal fade" role="dialog">
 				<div class="modal-dialog">
 					<div class="modal-content">
