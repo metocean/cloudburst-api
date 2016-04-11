@@ -1,5 +1,6 @@
 html, body {
   height:100%;
+  font-size:0.9em;
 }
 .container {
   position: relative;
@@ -20,14 +21,14 @@ html, body {
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.67);
 }
 .container {
-  max-width: 1920px;
+  max-width: 1800px;
   width: 100%;
 }
 .map-container {
-  height: 716px;
+  height: 600px;
   position: relative;
   margin-bottom:10px;
-  margin-top: 10px;
+  margin-top: 15px;;
 }
 .slider-container {
   padding: 0 40px;
@@ -50,4 +51,9 @@ html, body {
 }
 .dropup {
   margin-bottom: 10px;
+}
+
+table img {
+  max-width: 350px;
+  height: auto;
 }
