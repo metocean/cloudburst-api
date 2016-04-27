@@ -187,10 +187,25 @@ sample_layer_control = (json, host) ->
 
       dt = row.insertCell(3)
       dt.innerHTML = moment(lyr.getTindex(yes)).format('LLLL')
-      $(dt).addClass 'col-md-3'
+      $(dt).addClass 'col-md-2'
+
+      depth = row.insertCell(4)
+      $(depth).addClass 'col-md-1'
+      if lyr.getLevels().length > 1
+        increase = get_button("increase-depth-#{rowi}", ['glyphicon', 'glyphicon-circle-arrow-up'], ['btn', 'btn-md', 'decrease-depth', "decrease-depth-#{rowi}", 'depth'])
+        decrease = get_button("decrease-depth-#{rowi}", ['glyphicon', 'glyphicon-circle-arrow-down'], ['btn', 'btn-md', 'increase-depth', "increase-depth-#{rowi}", 'depth'])
+        depth.innerHTML = increase + decrease
+        $(".increase-depth-#{rowi}").on 'click', ->
+          btn_row = parseInt(this.id.split("-")[-1..][0])
+          active_layers[btn_row].deeper(no)
+        $(".decrease-depth-#{rowi}").on 'click', ->
+          btn_row = parseInt(this.id.split("-")[-1..][0])
+          active_layers[btn_row].higher(no)
+      else
+        depth.innerHTML = "<span>No depth</span>"
 
       legendsrc = lyr.getLayerLegendUrl('small', 'horizontal')
-      legend = row.insertCell(4)
+      legend = row.insertCell(5)
       legend.innerHTML = "<img src=\"#{legendsrc}\" alt='' />"
       $(legend).addClass 'col-md-3'
 

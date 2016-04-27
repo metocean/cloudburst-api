@@ -27,6 +27,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
             console.log("WARNING: no instances of layer #{@_layer} found")
 
     @setTindex(@getTindexes()[0], no)
+    @setLevel(@getLevels()[0], no)
     @setRenderer('mpl', no)
 
     L.TileLayer.prototype.initialize.call @, "[cloudburst]/{z}/{x}/{y}.png", options
@@ -101,10 +102,27 @@ L.CloudburstTileLayer = L.TileLayer.extend
   getInstance: ->
     @_instance
 
+  getLevels: (asObj) ->
+    # Vertical dimension
+    if @_instance? and @_layer?
+      levels = Object.keys(@_config.layers[@_layer].instances[@_instance].levels)
+      if asObj? and asObj
+        levels = ([i, @_config.layers[@_layer].instances[@_instance].levels[i]] for i in levels)
+    return levels
+
+  setLevel: (level, noRedraw) ->
+    if level.toString() in @getLevels()
+      @_level = level.toString()
+      @redraw() if !noRedraw? or !noRedraw
+      if logging is on
+        console.log("Level set to: #{@_level}")
+    @
+
+  getLevel: ->
+    @_level
+
   getTindexes: (asObj) ->
     # Time-indexes (tindexes)
-    # if named? and named: returns the values (e.g. ["2015-09-01T03:00:00Z"]),
-    # else returns the index values (e.g [0,1,2])
     if @_instance? and @_layer?
       tindexes = Object.keys(@_config.layers[@_layer].instances[@_instance].indexes)
       if asObj? and asObj
@@ -137,15 +155,29 @@ L.CloudburstTileLayer = L.TileLayer.extend
 
   forward: (noRedraw) ->
     if @_tindex?
-      if parseInt(@_tindex) < @getTindexes().length-1
-        @setTindex(Math.min(parseInt(@_tindex) + 1, @getTindexes().length-1), noRedraw)
+      if parseInt(@_tindex) < @getTindexes().length - 1
+        @setTindex(Math.min(parseInt(@_tindex) + 1, @getTindexes().length - 1), noRedraw)
+
+  higher: (noRedraw) ->
+    if logging is on
+      console.log "Going higher: #{@_level}"
+    if @_layer?
+      if parseInt(@_level) > 0
+        @setLevel(Math.max(parseInt(@_level) - 1, 0), noRedraw)
+
+  deeper: (noRedraw) ->
+    if logging is on
+      console.log "Going deeper: #{@_level}"
+    if @_level?
+      if parseInt(@_level) < @getLevels().length - 1
+        @setLevel(Math.min(parseInt(@_level) + 1, @getLevels().length - 1), noRedraw)
 
   getTileUrl: (coords) ->
     # Replace [cloudburst] in the prototype URL with parameters from the config
     L.TileLayer.prototype.getTileUrl
       .call @, coords
       .replace /\[cloudburst\]/,
-        "#{@_host}/tile/#{@_renderer}/#{@_layer}/#{@_instance}/#{@_tindex}"
+        "#{@_host}/tile/#{@_renderer}/#{@_layer}/#{@_instance}/#{@_tindex}/#{@_level}"
 
   getTindexesAsPercetagePositions: ->
     # Takes an array of datetime strings from @getTindexes, and returns an array

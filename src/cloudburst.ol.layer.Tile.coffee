@@ -13,6 +13,7 @@ class CloudburstOL3
     @setLayer(@_layers[0], no)
     @setInstance(@getInstances()[0], no)
     @setTindex(@getTindexes()[0], no)
+    @setLevel(@_levels[0], no)
     @setRenderer('mpl', no) # TODO
 
     @tileLayer = undefined
@@ -116,6 +117,24 @@ class CloudburstOL3
   getInstance: ->
     @_instance
 
+  getLevels: (asObj) ->
+    if @_instance? and @_layer?
+      levels = Object.keys(@_config.layers[@_layer].instances[@_instance].levels)
+      if asObj? and asObj
+        levels = ([i, @_config.layers[@_layer].instances[@_instance].levels[i]] for i in levels)
+    return levels
+
+  setLevel: (level, noRedraw) ->
+    if level.toString() in @getLevels()
+      @_level = level.toString()
+      @redraw() if !noRedraw? or !noRedraw
+      if logging is on
+        console.log("Level set to: #{@_level}")
+    @
+
+  getLevel: ->
+    @_level
+
   getTindexes: (asObj) ->
     # Time-indexes (tindexes)
     # if named? and named: returns the values (e.g. ["2015-09-01T03:00:00Z"]),
@@ -152,8 +171,19 @@ class CloudburstOL3
 
   forward: (noRedraw) ->
     if @_tindex?
-      if parseInt(@_tindex) < @getTindexes().length-1
-        @setTindex(Math.min(parseInt(@_tindex) + 1, @getTindexes().length-1), noRedraw)
+      if parseInt(@_tindex) < @getTindexes().length - 1
+        @setTindex(Math.min(parseInt(@_tindex) + 1, @getTindexes().length - 1), noRedraw)
+
+  higher: (noRedraw) ->
+    if @_layer?
+      if parseInt(@_layer) < @getLayers().length - 1
+        @getLayers(Math.min(parseInt(@_layer) + 1, @getLayers().length - 1), noRedraw)
+
+  deeper: (noRedraw) ->
+    if @_layer?
+      if parseInt(@_layer) > 0
+        @setLayer(Math.max(parseInt(@_layer) - 1, 0), noRedraw)
+
 
   getTindexesAsPercetagePositions: ->
     # Takes an array of datetime strings from @getTindexes, and returns an array

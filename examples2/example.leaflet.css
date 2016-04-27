@@ -59,3 +59,6 @@ table img {
   max-width: 350px;
   height: auto;
 }
+.increase-depth:hover, .decrease-depth:hover {
+  background-color: rgba(0,0,0,0.2);
+}

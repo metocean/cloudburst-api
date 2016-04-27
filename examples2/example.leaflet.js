@@ -221,7 +221,7 @@ sample_layer_control = function(json, host) {
     return input.outerHTML;
   };
   create_layer_table = function(table_id) {
-    var dt, j, layer_name, legend, legendsrc, len, lyr, opacity_slider, ref, remove_button, row, rowi;
+    var decrease, depth, dt, increase, j, layer_name, legend, legendsrc, len, lyr, opacity_slider, ref, remove_button, row, rowi;
     table_id = table_id != null ? table_id : "layer-table";
     document.getElementById(table_id).innerHTML = null;
     ref = active_layers.reverse();
@@ -240,9 +240,28 @@ sample_layer_control = function(json, host) {
       $(opacity_slider).addClass('col-md-2');
       dt = row.insertCell(3);
       dt.innerHTML = moment(lyr.getTindex(true)).format('LLLL');
-      $(dt).addClass('col-md-3');
+      $(dt).addClass('col-md-2');
+      depth = row.insertCell(4);
+      $(depth).addClass('col-md-1');
+      if (lyr.getLevels().length > 1) {
+        increase = get_button("increase-depth-" + rowi, ['glyphicon', 'glyphicon-circle-arrow-up'], ['btn', 'btn-md', 'decrease-depth', "decrease-depth-" + rowi, 'depth']);
+        decrease = get_button("decrease-depth-" + rowi, ['glyphicon', 'glyphicon-circle-arrow-down'], ['btn', 'btn-md', 'increase-depth', "increase-depth-" + rowi, 'depth']);
+        depth.innerHTML = increase + decrease;
+        $(".increase-depth-" + rowi).on('click', function() {
+          var btn_row;
+          btn_row = parseInt(this.id.split("-").slice(-1)[0]);
+          return active_layers[btn_row].deeper(false);
+        });
+        $(".decrease-depth-" + rowi).on('click', function() {
+          var btn_row;
+          btn_row = parseInt(this.id.split("-").slice(-1)[0]);
+          return active_layers[btn_row].higher(false);
+        });
+      } else {
+        depth.innerHTML = "<span>No depth</span>";
+      }
       legendsrc = lyr.getLayerLegendUrl('small', 'horizontal');
-      legend = row.insertCell(4);
+      legend = row.insertCell(5);
       legend.innerHTML = "<img src=\"" + legendsrc + "\" alt='' />";
       $(legend).addClass('col-md-3');
       make_opacity_slider("opacity-slider-" + rowi, lyr, lyr.options.opacity * 100);

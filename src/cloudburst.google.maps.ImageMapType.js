@@ -13,6 +13,7 @@ CloudburstMapType = function(config, host, map) {
   this.setLayer(this._layers[3], false);
   this.setInstance(this.getInstances()[0], false);
   this.setTindex(this.getTindexes()[0], false);
+  this.setLevel(this.getLevels()[0], false);
   this.setRenderer('mpl', false);
   return this;
 };
@@ -162,6 +163,43 @@ CloudburstMapType.prototype.getInstance = function() {
   return this._instance;
 };
 
+CloudburstMapType.prototype.getLevels = function(asObj) {
+  var i, levels;
+  if ((this._instance != null) && (this._layer != null)) {
+    levels = Object.keys(this._config.layers[this._layer].instances[this._instance].levels);
+    if ((asObj != null) && asObj) {
+      levels = (function() {
+        var j, len, results;
+        results = [];
+        for (j = 0, len = levels.length; j < len; j++) {
+          i = levels[j];
+          results.push([i, this._config.layers[this._layer].instances[this._instance].levels[i]]);
+        }
+        return results;
+      }).call(this);
+    }
+  }
+  return levels;
+};
+
+CloudburstMapType.prototype.setLevel = function(level, noRedraw) {
+  var ref;
+  if (ref = level.toString(), indexOf.call(this.getLevels(), ref) >= 0) {
+    this._level = level.toString();
+    if ((noRedraw == null) || !noRedraw) {
+      this.redraw();
+    }
+    if (logging === true) {
+      console.log("Level set to: " + this._level);
+    }
+  }
+  return this;
+};
+
+CloudburstMapType.prototype.getLevel = function() {
+  return this._level;
+};
+
 CloudburstMapType.prototype.getTindexes = function(asObj) {
   var i, tindexes;
   if ((this._instance != null) && (this._layer != null)) {
@@ -227,6 +265,22 @@ CloudburstMapType.prototype.forward = function(noRedraw) {
   if (this._tindex != null) {
     if (parseInt(this._tindex) < this.getTindexes().length - 1) {
       return this.setTindex(Math.min(parseInt(this._tindex) + 1, this.getTindexes().length - 1), noRedraw);
+    }
+  }
+};
+
+CloudburstMapType.prototype.higher = function(noRedraw) {
+  if (this._layer != null) {
+    if (parseInt(this._layer) < this.getLayers().length - 1) {
+      return this.setLayer(Math.min(parseInt(this._layer) + 1, this.getLayers().length - 1), noRedraw);
+    }
+  }
+};
+
+CloudburstMapType.prototype.deeper = function(noRedraw) {
+  if (this._layer != null) {
+    if (parseInt(this._layer) > 0) {
+      return this.setLayer(Math.max(parseInt(this._layer) - 1, 0), noRedraw);
     }
   }
 };

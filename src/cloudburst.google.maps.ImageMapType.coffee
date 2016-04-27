@@ -11,6 +11,7 @@ CloudburstMapType = (config, host, map) ->
   @setLayer(@_layers[3], no)
   @setInstance(@getInstances()[0], no)
   @setTindex(@getTindexes()[0], no)
+  @setLevel(@getLevels()[0], no)
   @setRenderer('mpl', no) # TODO
 
   @
@@ -117,6 +118,24 @@ CloudburstMapType.prototype.setInstance = (instance, noRedraw) ->
 CloudburstMapType.prototype.getInstance = ->
   @_instance
 
+CloudburstMapType.prototype.getLevels = (asObj) ->
+  if @_instance? and @_layer?
+    levels = Object.keys(@_config.layers[@_layer].instances[@_instance].levels)
+    if asObj? and asObj
+      levels = ([i, @_config.layers[@_layer].instances[@_instance].levels[i]] for i in levels)
+  return levels
+
+CloudburstMapType.prototype.setLevel = (level, noRedraw) ->
+  if level.toString() in @getLevels()
+    @_level = level.toString()
+    @redraw() if !noRedraw? or !noRedraw
+    if logging is on
+      console.log("Level set to: #{@_level}")
+  @
+
+CloudburstMapType.prototype.getLevel = ->
+  @_level
+
 CloudburstMapType.prototype.getTindexes = (asObj) ->
   # Time-indexes (tindexes)
   # if named? and named: returns the values (e.g. ["2015-09-01T03:00:00Z"]),
@@ -153,5 +172,15 @@ CloudburstMapType.prototype.back = (noRedraw) ->
 
 CloudburstMapType.prototype.forward = (noRedraw) ->
   if @_tindex?
-    if parseInt(@_tindex) < @getTindexes().length-1
+    if parseInt(@_tindex) < @getTindexes().length - 1
       @setTindex(Math.min(parseInt(@_tindex) + 1, @getTindexes().length-1), noRedraw)
+
+CloudburstMapType.prototype.higher = (noRedraw) ->
+  if @_layer?
+    if parseInt(@_layer) < @getLayers().length - 1
+      @setLayer(Math.min(parseInt(@_layer) + 1, @getLayers().length-1), noRedraw)
+
+CloudburstMapType.prototype.deeper = (noRedraw) ->
+  if @_layer?
+    if parseInt(@_layer) > 0
+      @setLayer(Math.max(parseInt(@_layer) - 1, 0), noRedraw)
