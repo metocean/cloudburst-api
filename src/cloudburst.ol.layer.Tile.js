@@ -112,6 +112,18 @@ CloudburstOL3 = (function() {
     return this._layer;
   };
 
+  CloudburstOL3.prototype.getLayerLegendUrl = function(size, orientation) {
+    var layerurl;
+    if ((size == null) || !size) {
+      size = "small";
+    }
+    if ((orientation == null) || !orientation) {
+      orientation = "horiztonal";
+    }
+    layerurl = this._host + "/legend/" + size + "/" + orientation + "/" + (this.getLayer()) + "/" + (this.getInstance()) + ".png";
+    return layerurl;
+  };
+
   CloudburstOL3.prototype.getLayerMetadata = function() {
     if (this._layer != null) {
       return this._config.layers[this._layer].meta;

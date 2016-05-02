@@ -61,8 +61,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
     if !size? or !size
       size = "small" # or "large"
     if !orientation? or !orientation
-      orientation = "horiztonal"
-    layerurl = "#{@_host}/legend/#{size}/#{orientation}/#{@getLayer()}.png"
+      orientation = "horiztonal" # or "vertical"
+    layerurl = "#{@_host}/legend/#{size}/#{orientation}/#{@getLayer()}/#{@getInstance()}.png"
     return layerurl
 
   getLayerMetadata: ->

@@ -110,6 +110,18 @@ CloudburstMapType.prototype.getLayer = function() {
   return this._layer;
 };
 
+CloudburstMapType.prototype.getLayerLegendUrl = function(size, orientation) {
+  var layerurl;
+  if ((size == null) || !size) {
+    size = "small";
+  }
+  if ((orientation == null) || !orientation) {
+    orientation = "horiztonal";
+  }
+  layerurl = this._host + "/legend/" + size + "/" + orientation + "/" + (this.getLayer()) + "/" + (this.getInstance()) + ".png";
+  return layerurl;
+};
+
 CloudburstMapType.prototype.getLayerMetadata = function() {
   if (this._layer != null) {
     return this._config.layers[this._layer].meta;

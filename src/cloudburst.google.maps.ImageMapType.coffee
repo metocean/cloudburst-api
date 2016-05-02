@@ -83,6 +83,14 @@ CloudburstMapType.prototype.setLayer = (layer, noRedraw) ->
 CloudburstMapType.prototype.getLayer = ->
   @_layer
 
+CloudburstMapType.prototype.getLayerLegendUrl = (size, orientation) ->
+  if !size? or !size
+    size = "small" # or "large"
+  if !orientation? or !orientation
+    orientation = "horiztonal" # or "vertical"
+  layerurl = "#{@_host}/legend/#{size}/#{orientation}/#{@getLayer()}/#{@getInstance()}.png"
+  return layerurl
+
 CloudburstMapType.prototype.getLayerMetadata = ->
   if @_layer?
     @_config.layers[@_layer].meta

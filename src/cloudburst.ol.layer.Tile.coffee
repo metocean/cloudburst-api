@@ -82,6 +82,14 @@ class CloudburstOL3
   getLayer: ->
     @_layer
 
+  getLayerLegendUrl: (size, orientation) ->
+    if !size? or !size
+      size = "small" # or "large"
+    if !orientation? or !orientation
+      orientation = "horiztonal" # or "vertical"
+    layerurl = "#{@_host}/legend/#{size}/#{orientation}/#{@getLayer()}/#{@getInstance()}.png"
+    return layerurl
+
   getLayerMetadata: ->
     if @_layer?
       @_config.layers[@_layer].meta

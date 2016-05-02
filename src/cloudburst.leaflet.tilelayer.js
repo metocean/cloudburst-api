@@ -80,7 +80,7 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     if ((orientation == null) || !orientation) {
       orientation = "horiztonal";
     }
-    layerurl = this._host + "/legend/" + size + "/" + orientation + "/" + (this.getLayer()) + ".png";
+    layerurl = this._host + "/legend/" + size + "/" + orientation + "/" + (this.getLayer()) + "/" + (this.getInstance()) + ".png";
     return layerurl;
   },
   getLayerMetadata: function() {
