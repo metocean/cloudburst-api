@@ -30,9 +30,8 @@ function main() {
   map.on('style.load', function() {
     map.addSource('msl', {
       type: 'vector',
-      tiles: ["http://localhost:6060/tile/pbf/ncep_mslp_pbf/20160114_06z/0/0/{z}/{x}/{y}.pbf"]
-      //tiles: ["http://localhost:6060/tile/pbf/ncep_mslp_pbf/20160210_06z/0/0/{z}/{x}/{y}.pbf"]
-      //tiles: ["http://www.metoceanview.com:6060/tile/pbf/ncep_mslp_pbf/20160210_06z/0/0/{z}/{x}/{y}.pbf"]
+      // NOTE: remove hard-coded instance and use API
+      tiles: ["http://www.metoceanview.com:6060/tile/pbf/ncep_mslp_pbf/20160210_06z/0/0/{z}/{x}/{y}.pbf"]
     });
     // normal layer
     map.addLayer({
