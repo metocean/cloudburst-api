@@ -121,7 +121,7 @@ sample_layer_control = function(json, host) {
               results = [];
               for (k = 0, len1 = ref.length; k < len1; k++) {
                 t = ref[k];
-                results.push(moment(t[1]).unix());
+                results.push(moment(t[1], moment.ISO_8601).unix());
               }
               return results;
             })();
@@ -239,7 +239,7 @@ sample_layer_control = function(json, host) {
       opacity_slider.innerHTML = get_opacity_slider("opacity-slider-" + rowi);
       $(opacity_slider).addClass('col-md-2');
       dt = row.insertCell(3);
-      dt.innerHTML = moment(lyr.getTindex(true)).format('LLLL');
+      dt.innerHTML = moment(lyr.getTindex(true), moment.ISO_8601).format('LLLL');
       $(dt).addClass('col-md-2');
       depth = row.insertCell(4);
       $(depth).addClass('col-md-1');
@@ -306,7 +306,7 @@ sample_layer_control = function(json, host) {
       ref3 = lyr.getTindexes(true);
       for (m = 0, len3 = ref3.length; m < len3; m++) {
         t = ref3[m];
-        t_set.add(moment(t[1]).unix());
+        t_set.add(moment(t[1], moment.ISO_8601).unix());
       }
     }
     make_global_slider(false, Array.from(t_set));
@@ -329,7 +329,7 @@ sample_layer_control = function(json, host) {
         results = [];
         for (j = 0, len = ref.length; j < len; j++) {
           t = ref[j];
-          results.push(moment(t[1]).unix());
+          results.push(moment(t[1], moment.ISO_8601).unix());
         }
         return results;
       })();

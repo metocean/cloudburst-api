@@ -92,7 +92,7 @@ sample_layer_control = (json, host) ->
         max: Math.max.apply(Math, values)
         change: (event, ui) ->
           for lyr in active_layers
-            lyr_moments = (moment(t[1]).unix() for t in lyr.getTindexes(yes))
+            lyr_moments = (moment(t[1], moment.ISO_8601).unix() for t in lyr.getTindexes(yes))
             selected_moment_str = closest(lyr_moments, ui.value)
             lyr.setTindex(lyr_moments.indexOf(selected_moment_str))
           global_time = ui.value # Global, used when new layers are added
@@ -186,7 +186,7 @@ sample_layer_control = (json, host) ->
       $(opacity_slider).addClass 'col-md-2'
 
       dt = row.insertCell(3)
-      dt.innerHTML = moment(lyr.getTindex(yes)).format('LLLL')
+      dt.innerHTML = moment(lyr.getTindex(yes), moment.ISO_8601).format('LLLL')
       $(dt).addClass 'col-md-2'
 
       depth = row.insertCell(4)
@@ -234,7 +234,7 @@ sample_layer_control = (json, host) ->
     for lyr in active_layers
       lyr.setZIndex(if !(lyr._url in basemaps_urls) then z + 1 else 0)
       z += 1
-      t_set.add(moment(t[1]).unix()) for t in lyr.getTindexes(yes)
+      t_set.add(moment(t[1], moment.ISO_8601).unix()) for t in lyr.getTindexes(yes)
     make_global_slider(off, Array.from(t_set))
     # Adds all active layers to the table of layers
     create_layer_table()
@@ -251,7 +251,7 @@ sample_layer_control = (json, host) ->
     selected_lyr.setInstance $('option:selected', $('#instances')).val() #$('option:selected', $('#instances')).attr('title')
 
     if global_time?
-      lyr_moments = (moment(t[1]).unix() for t in selected_lyr.getTindexes(yes))
+      lyr_moments = (moment(t[1], moment.ISO_8601).unix() for t in selected_lyr.getTindexes(yes))
       selected_moment_str = closest(lyr_moments, global_time)
       selected_lyr.setTindex(lyr_moments.indexOf(selected_moment_str))
 
