@@ -108,22 +108,15 @@ L.CloudburstTileLayer = L.TileLayer.extend
 
   getLevels: (asObj) ->
     # Vertical dimension
-    if @_instance? and @_layer? and 'levels' in @_config[@_layer]['dataset'][@_instance]
+    if @_instance? and @_layer? and 'levels' in Object.keys @_config[@_layer]['dataset'][@_instance]
       levels = Object.keys(@_config[@_layer]['dataset'][@_instance]['levels'])
       if asObj? and asObj
         levels = ([i, @_config[@_layer]['dataset'][@_instance]['levels'][i]] for i in levels)
-      if logging is on
-        console.log("Level set to: #{@_level}")
       return levels
-    return if !asObj then [0] else {"0": 0}
+    return if !asObj then ["0"] else {"0": undefined}
 
   setLevel: (level, noRedraw) ->
-    levels = @getLevels()
-    if !levels
-      @_level = 0
-      if logging is on
-        console.log("Level set to: #{@_level}")
-    else if level in levels
+    if level.toString() in @getLevels()
       @_level = level.toString()
       @redraw() if !noRedraw? or !noRedraw
       if logging is on
@@ -131,8 +124,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
     @
 
   getLevel: ->
-    # Level doesn't usually exist; defaults to 0
-    if @_level? and @_level then @_level else 0
+    @_level
 
   getTindexes: (asObj) ->
     # Time-indexes (tindexes)
@@ -151,7 +143,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
     @
 
   getTindex: (as_time_string) ->
-    if !as_time_string? then @_tindex else @getTindexes()[@_tindex]
+    console.log @_tindex, @getTindexes(yes)[@_tindex][1]
+    if !as_time_string? then @_tindex else @getTindexes(yes)[@_tindex][1]
 
   getRenderer: ->
     @_renderer
@@ -174,20 +167,17 @@ L.CloudburstTileLayer = L.TileLayer.extend
   higher: (noRedraw) ->
     if logging is on
       console.log "Going higher: #{@_level}"
-    if @_layer?
-      if parseInt(@_level) > 0
-        @setLevel(Math.max(parseInt(@_level) - 1, 0), noRedraw)
+    if parseInt(@_level) > 0
+      @setLevel(Math.max(parseInt(@_level) - 1, 0), noRedraw)
 
   deeper: (noRedraw) ->
     if logging is on
       console.log "Going deeper: #{@_level}"
-    if @_level?
-      if parseInt(@_level) < @getLevels().length - 1
-        @setLevel(Math.min(parseInt(@_level) + 1, @getLevels().length - 1), noRedraw)
+    if parseInt(@_level) < @getLevels().length - 1
+      @setLevel(Math.min(parseInt(@_level) + 1, @getLevels().length - 1), noRedraw)
 
   getTileUrl: (coords) ->
     # Replace [cloudburst] in the prototype URL with parameters from the config
-    console.log coords, @_tindex, @_level
     L.TileLayer.prototype.getTileUrl
       .call @, coords
       .replace /\[cloudburst\]/,

@@ -146,7 +146,7 @@ L.CloudburstTileLayer = L.TileLayer.extend({
   },
   getLevels: function(asObj) {
     var i, levels;
-    if ((this._instance != null) && (this._layer != null) && indexOf.call(this._config[this._layer]['dataset'][this._instance], 'levels') >= 0) {
+    if ((this._instance != null) && (this._layer != null) && indexOf.call(Object.keys(this._config[this._layer]['dataset'][this._instance]), 'levels') >= 0) {
       levels = Object.keys(this._config[this._layer]['dataset'][this._instance]['levels']);
       if ((asObj != null) && asObj) {
         levels = (function() {
@@ -159,28 +159,19 @@ L.CloudburstTileLayer = L.TileLayer.extend({
           return results;
         }).call(this);
       }
-      if (logging === true) {
-        console.log("Level set to: " + this._level);
-      }
       return levels;
     }
     if (!asObj) {
-      return [0];
+      return ["0"];
     } else {
       return {
-        "0": 0
+        "0": void 0
       };
     }
   },
   setLevel: function(level, noRedraw) {
-    var levels;
-    levels = this.getLevels();
-    if (!levels) {
-      this._level = 0;
-      if (logging === true) {
-        console.log("Level set to: " + this._level);
-      }
-    } else if (indexOf.call(levels, level) >= 0) {
+    var ref;
+    if (ref = level.toString(), indexOf.call(this.getLevels(), ref) >= 0) {
       this._level = level.toString();
       if ((noRedraw == null) || !noRedraw) {
         this.redraw();
@@ -192,11 +183,7 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     return this;
   },
   getLevel: function() {
-    if ((this._level != null) && this._level) {
-      return this._level;
-    } else {
-      return 0;
-    }
+    return this._level;
   },
   getTindexes: function(asObj) {
     var i, tindexes;
@@ -230,10 +217,11 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     return this;
   },
   getTindex: function(as_time_string) {
+    console.log(this._tindex, this.getTindexes(true)[this._tindex][1]);
     if (as_time_string == null) {
       return this._tindex;
     } else {
-      return this.getTindexes()[this._tindex];
+      return this.getTindexes(true)[this._tindex][1];
     }
   },
   getRenderer: function() {
@@ -264,24 +252,19 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     if (logging === true) {
       console.log("Going higher: " + this._level);
     }
-    if (this._layer != null) {
-      if (parseInt(this._level) > 0) {
-        return this.setLevel(Math.max(parseInt(this._level) - 1, 0), noRedraw);
-      }
+    if (parseInt(this._level) > 0) {
+      return this.setLevel(Math.max(parseInt(this._level) - 1, 0), noRedraw);
     }
   },
   deeper: function(noRedraw) {
     if (logging === true) {
       console.log("Going deeper: " + this._level);
     }
-    if (this._level != null) {
-      if (parseInt(this._level) < this.getLevels().length - 1) {
-        return this.setLevel(Math.min(parseInt(this._level) + 1, this.getLevels().length - 1), noRedraw);
-      }
+    if (parseInt(this._level) < this.getLevels().length - 1) {
+      return this.setLevel(Math.min(parseInt(this._level) + 1, this.getLevels().length - 1), noRedraw);
     }
   },
   getTileUrl: function(coords) {
-    console.log(coords, this._tindex, this._level);
     return L.TileLayer.prototype.getTileUrl.call(this, coords).replace(/\[cloudburst\]/, this._host + "/tile/" + this._renderer + "/" + this._layer + "/" + this._instance + "/" + this._tindex + "/" + this._level);
   },
   getTindexesAsPercetagePositions: function() {

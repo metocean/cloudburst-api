@@ -186,11 +186,12 @@ sample_layer_control = (json, host) ->
       $(opacity_slider).addClass 'col-md-2'
 
       dt = row.insertCell(3)
-      dt.innerHTML = moment(lyr.getTindex(yes), moment.ISO_8601).format('LLLL')
+      dt.innerHTML = moment(lyr.getTindex(yes), moment.ISO_8601).format('llll')
       $(dt).addClass 'col-md-2'
 
       depth = row.insertCell(4)
       $(depth).addClass 'col-md-1'
+      console.log lyr.getLevels()
       if lyr.getLevels().length > 1
         increase = get_button("increase-depth-#{rowi}", ['glyphicon', 'glyphicon-circle-arrow-up'], ['btn', 'btn-md', 'decrease-depth', "decrease-depth-#{rowi}", 'depth'])
         decrease = get_button("decrease-depth-#{rowi}", ['glyphicon', 'glyphicon-circle-arrow-down'], ['btn', 'btn-md', 'increase-depth', "increase-depth-#{rowi}", 'depth'])
