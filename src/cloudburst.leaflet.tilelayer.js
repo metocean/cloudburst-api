@@ -37,8 +37,9 @@ L.CloudburstTileLayer = L.TileLayer.extend({
   getConfig: function() {
     return this._config;
   },
-  getLayers: function(asObj) {
+  getLayers: function(asObj, sorted) {
     var lyr, lyrs;
+    sorted = sorted != null ? sorted : true;
     if (this._config != null) {
       if ((asObj == null) || !asObj) {
         lyrs = Object.keys(this._config);
@@ -53,6 +54,9 @@ L.CloudburstTileLayer = L.TileLayer.extend({
           }
           return results;
         }).call(this);
+      }
+      if (sorted) {
+        lyrs.sort();
       }
       return lyrs;
     }
@@ -108,8 +112,9 @@ L.CloudburstTileLayer = L.TileLayer.extend({
       return this._config.layers[this._layer].plot_defs;
     }
   },
-  getInstances: function(asObj) {
+  getInstances: function(asObj, sorted) {
     var i, instances;
+    sorted = sorted != null ? sorted : true;
     if (this._layer != null) {
       instances = Object.keys(this._config[this._layer]['dataset']);
       if ((asObj != null) && asObj) {
@@ -122,6 +127,9 @@ L.CloudburstTileLayer = L.TileLayer.extend({
           }
           return results;
         }).call(this);
+      }
+      if (sorted) {
+        instances.sort();
       }
       return instances;
     }

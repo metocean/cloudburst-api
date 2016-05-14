@@ -36,15 +36,19 @@ L.CloudburstTileLayer = L.TileLayer.extend
   getConfig: ->
     @_config
 
-  getLayers: (asObj) ->
+  getLayers: (asObj, sorted) ->
     # asObj (bool):
     # - true: returns the layers as an array of tuples: (short name, json)
     # - false: returns the layers as an array of short names
+    sorted = if sorted? then sorted else true
     if @_config?
       if !asObj? or !asObj
         lyrs = Object.keys(@_config)
       else
         lyrs = ([lyr, @_config[lyr]] for lyr in Object.keys(@_config))
+      # console.log lyrs[0][1].meta.name
+      if sorted
+        lyrs.sort()
       return lyrs
 
   setLayer: (layer, noRedraw) ->
@@ -86,11 +90,14 @@ L.CloudburstTileLayer = L.TileLayer.extend
     if @_layer
       @_config.layers[@_layer].plot_defs
 
-  getInstances: (asObj)->
+  getInstances: (asObj, sorted)->
+    sorted = if sorted? then sorted else true
     if @_layer?
       instances = Object.keys(@_config[@_layer]['dataset'])
       if asObj? and asObj
         instances = ([i, @_config[@_layer]['dataset'][i]] for i in instances)
+      if sorted
+        instances.sort()
       return instances
 
   setInstance: (instance, noRedraw) ->
