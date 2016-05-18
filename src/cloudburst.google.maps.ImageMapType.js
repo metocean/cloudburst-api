@@ -9,8 +9,8 @@ CloudburstMapType = function(config, host, map) {
   this._host = host;
   this._layers = this.getLayers();
   this._map = map;
-  this.opacity = 0.5;
-  this.setLayer(this._layers[3], false);
+  this.opacity = 0.8;
+  this.setLayer(this.getLayers()[0], false);
   this.setInstance(this.getInstances()[0], false);
   this.setTindex(this.getTindexes()[0], false);
   this.setLevel(this.getLevels()[0], false);
@@ -58,7 +58,7 @@ CloudburstMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
   bound = Math.pow(2, zoom);
   x = normalizedCoord.x;
   y = bound - normalizedCoord.y - 1;
-  url = this._host + "/tile/" + this._renderer + "/" + this._layer + "/" + this._instance + "/" + this._tindex + "/" + zoom + "/" + x + "/" + y + ".png";
+  url = this._host + "/tile/" + this._renderer + "/" + this._layer + "/" + this._instance + "/" + this._tindex + "/" + this._level + "/" + zoom + "/" + x + "/" + y + ".png";
   if ((logging == null) && logging) {
     console.log(url);
   }
@@ -76,15 +76,15 @@ CloudburstMapType.prototype.getLayers = function(asObj) {
   var lyr, lyrs;
   if (this._config != null) {
     if ((asObj == null) || !asObj) {
-      lyrs = Object.keys(this._config.layers);
+      lyrs = Object.keys(this._config);
     } else {
       lyrs = (function() {
         var j, len, ref, results;
-        ref = Object.keys(this._config.layers);
+        ref = Object.keys(this._config);
         results = [];
         for (j = 0, len = ref.length; j < len; j++) {
           lyr = ref[j];
-          results.push([lyr, this._config.layers[lyr]]);
+          results.push([lyr, this._config[lyr]]);
         }
         return results;
       }).call(this);
@@ -94,7 +94,7 @@ CloudburstMapType.prototype.getLayers = function(asObj) {
 };
 
 CloudburstMapType.prototype.setLayer = function(layer, noRedraw) {
-  if ((indexOf.call(Object.keys(this._config.layers), layer) >= 0)) {
+  if ((indexOf.call(Object.keys(this._config), layer) >= 0)) {
     this._layer = layer;
     if ((noRedraw == null) || !noRedraw) {
       this.redraw();
@@ -118,7 +118,7 @@ CloudburstMapType.prototype.getLayerLegendUrl = function(size, orientation) {
   if ((orientation == null) || !orientation) {
     orientation = "horiztonal";
   }
-  layerurl = this._host + "/legend/" + size + "/" + orientation + "/" + (this.getLayer()) + "/" + (this.getInstance()) + ".png";
+  layerurl = this._host + "/legend/" + size + "/" + orientation + "/" + this._layer + "/" + (this._instance()) + ".png";
   return layerurl;
 };
 
@@ -147,14 +147,14 @@ CloudburstMapType.prototype.getLayerUnits = function() {
 };
 
 CloudburstMapType.prototype.getLayerPlotDefinitions = function() {
-  if (this._layer) {
+  if (this._layer != null) {
     return this._config.layers[this._layer].plot_defs;
   }
 };
 
 CloudburstMapType.prototype.getInstances = function() {
   if (this._layer != null) {
-    return Object.keys(this._config.layers[this._layer].instances);
+    return Object.keys(this._config[this._layer]['dataset']);
   }
 };
 
@@ -177,21 +177,28 @@ CloudburstMapType.prototype.getInstance = function() {
 
 CloudburstMapType.prototype.getLevels = function(asObj) {
   var i, levels;
-  if ((this._instance != null) && (this._layer != null)) {
-    levels = Object.keys(this._config.layers[this._layer].instances[this._instance].levels);
+  if ((this._instance != null) && (this._layer != null) && indexOf.call(Object.keys(this._config[this._layer]['dataset'][this._instance]), 'levels') >= 0) {
+    levels = Object.keys(this._config[this._layer]['dataset'][this._instance]['levels']);
     if ((asObj != null) && asObj) {
       levels = (function() {
         var j, len, results;
         results = [];
         for (j = 0, len = levels.length; j < len; j++) {
           i = levels[j];
-          results.push([i, this._config.layers[this._layer].instances[this._instance].levels[i]]);
+          results.push([i, this._config.layers[this._layer]['dataset'][this._instance]['levels'][i]]);
         }
         return results;
       }).call(this);
     }
+    return levels;
   }
-  return levels;
+  if (!asObj) {
+    return ["0"];
+  } else {
+    return {
+      "0": void 0
+    };
+  }
 };
 
 CloudburstMapType.prototype.setLevel = function(level, noRedraw) {
@@ -215,14 +222,14 @@ CloudburstMapType.prototype.getLevel = function() {
 CloudburstMapType.prototype.getTindexes = function(asObj) {
   var i, tindexes;
   if ((this._instance != null) && (this._layer != null)) {
-    tindexes = Object.keys(this._config.layers[this._layer].instances[this._instance].indexes);
+    tindexes = Object.keys(this._config[this._layer]['dataset'][this._instance].times);
     if ((asObj != null) && asObj) {
       tindexes = (function() {
         var j, len, results;
         results = [];
         for (j = 0, len = tindexes.length; j < len; j++) {
           i = tindexes[j];
-          results.push([i, this._config.layers[this._layer].instances[this._instance].indexes[i]]);
+          results.push([i, this._config[this._layer]['dataset'][this._instance].times[i]]);
         }
         return results;
       }).call(this);

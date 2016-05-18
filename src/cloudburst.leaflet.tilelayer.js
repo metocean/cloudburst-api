@@ -87,6 +87,13 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     layerurl = this._host + "/legend/" + size + "/" + orientation + "/" + (this.getLayer()) + "/" + (this.getInstance()) + ".png";
     return layerurl;
   },
+  getBounds: function() {
+    var bounds;
+    if ((this._layer != null) && (this._instance != null)) {
+      bounds = this._config[this._layer]['dataset'][this._instance]['bounds'];
+      return new L.latLngBounds(L.latLng(bounds['south'], bounds['west']), L.latLng(bounds['north'], bounds['east']));
+    }
+  },
   getLayerMetadata: function() {
     if ((this._layer != null) && (this._instance != null)) {
       return this._config[this._layer].meta;
@@ -129,7 +136,7 @@ L.CloudburstTileLayer = L.TileLayer.extend({
         }).call(this);
       }
       if (sorted) {
-        instances.sort();
+        instances.sort().reverse();
       }
       return instances;
     }
@@ -251,7 +258,7 @@ L.CloudburstTileLayer = L.TileLayer.extend({
   },
   forward: function(noRedraw) {
     if (this._tindex != null) {
-      if (parseInt(this._tindex) < this.getTindexes().lengthh - 1) {
+      if (parseInt(this._tindex) < this.getTindexes().length - 1) {
         return this.setTindex(Math.min(parseInt(this._tindex) + 1, this.getTindexes().length - 1), noRedraw);
       }
     }

@@ -70,6 +70,16 @@ L.CloudburstTileLayer = L.TileLayer.extend
     layerurl = "#{@_host}/legend/#{size}/#{orientation}/#{@getLayer()}/#{@getInstance()}.png"
     return layerurl
 
+  getBounds: ->
+    # Returns bounds as L.latLngBounds
+    # TODO enforce this for layers by default to avoid requesting blank tiles
+    if @_layer? and @_instance?
+      bounds = @_config[@_layer]['dataset'][@_instance]['bounds']
+      return new L.latLngBounds(
+        L.latLng(bounds['south'], bounds['west']),
+        L.latLng(bounds['north'], bounds['east'])
+      )
+
   getLayerMetadata: ->
     if @_layer? and @_instance?
       @_config[@_layer].meta
@@ -97,7 +107,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
       if asObj? and asObj
         instances = ([i, @_config[@_layer]['dataset'][i]] for i in instances)
       if sorted
-        instances.sort()
+        instances.sort().reverse() # Newest first
       return instances
 
   setInstance: (instance, noRedraw) ->
@@ -168,7 +178,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
 
   forward: (noRedraw) ->
     if @_tindex?
-      if parseInt(@_tindex) < @getTindexes().lengthh - 1
+      if parseInt(@_tindex) < @getTindexes().length - 1
         @setTindex(Math.min(parseInt(@_tindex) + 1, @getTindexes().length - 1), noRedraw)
 
   higher: (noRedraw) ->

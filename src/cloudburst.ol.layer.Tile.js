@@ -14,7 +14,7 @@ CloudburstOL3 = (function() {
     this.setLayer(this._layers[0], false);
     this.setInstance(this.getInstances()[0], false);
     this.setTindex(this.getTindexes()[0], false);
-    this.setLevel(this._levels[0], false);
+    this.setLevel(this.getLevels()[0], false);
     this.setRenderer('mpl', false);
     this.tileLayer = void 0;
     this;
@@ -39,24 +39,21 @@ CloudburstOL3 = (function() {
     z = tileCoord[0];
     x = tileCoord[1];
     y = tileCoord[2] + (1 << z);
-    return this._host + "/tile/" + this._renderer + "/" + this._layer + "/" + this._instance + "/" + this._tindex + "/" + z + "/" + x + "/" + y + ".png";
+    return this._host + "/tile/" + this._renderer + "/" + this._layer + "/" + this._instance + "/" + this._tindex + "/" + this._level + "/" + z + "/" + x + "/" + y + ".png";
   };
 
   CloudburstOL3.prototype.setOL3LayerTile = function(options) {
     var tileLayer;
     options = options == null ? {} : options;
     tileLayer = new ol.layer.Tile({
-      brightness: options.brightness != null ? options.brightness : void 0,
-      contrast: options.contrast != null ? options.contrast : void 0,
-      hue: options.hue != null ? options.hue : void 0,
       opacity: options.opacity != null ? options.opacity : void 0,
       preload: options.preload != null ? options.preload : void 0,
-      saturation: options.saturation != null ? options.saturation : void 0,
       visible: options.visible != null ? options.visible : void 0,
       extent: options.extent != null ? options.extent : void 0,
       minResolution: options.minResolution != null ? options.minResolution : void 0,
       maxResolution: options.maxResolution != null ? options.maxResolution : void 0,
       userInterimTilesOnError: options.userInterimTilesOnError != null ? options.userInterimTilesOnError : void 0,
+      extent: options.extent != null ? options.extent : this.getLayerBounds(),
       source: new ol.source.XYZ({
         attributions: [this.getAttribution()],
         tileUrlFunction: (function(_this) {
@@ -78,15 +75,15 @@ CloudburstOL3 = (function() {
     var lyr, lyrs;
     if (this._config != null) {
       if ((asObj == null) || !asObj) {
-        lyrs = Object.keys(this._config.layers);
+        lyrs = Object.keys(this._config);
       } else {
         lyrs = (function() {
           var j, len, ref, results;
-          ref = Object.keys(this._config.layers);
+          ref = Object.keys(this._config);
           results = [];
           for (j = 0, len = ref.length; j < len; j++) {
             lyr = ref[j];
-            results.push([lyr, this._config.layers[lyr]]);
+            results.push([lyr, this._config[lyr]]);
           }
           return results;
         }).call(this);
@@ -96,7 +93,7 @@ CloudburstOL3 = (function() {
   };
 
   CloudburstOL3.prototype.setLayer = function(layer, noRedraw) {
-    if ((indexOf.call(Object.keys(this._config.layers), layer) >= 0)) {
+    if ((this._layers != null) && indexOf.call(this._layers, layer) >= 0) {
       this._layer = layer;
       if ((noRedraw == null) || !noRedraw) {
         this.redraw();
@@ -124,9 +121,17 @@ CloudburstOL3 = (function() {
     return layerurl;
   };
 
+  CloudburstOL3.prototype.getLayerBounds = function() {
+    var bounds;
+    if ((this._layer != null) && (this._instance != null)) {
+      bounds = this._config[this._layer]['dataset'][this._instance]['bounds'];
+      return ol.proj.transformExtent([bounds['west'], bounds['south'], bounds['east'], bounds['north']], 'EPSG:4326', 'EPSG:3857');
+    }
+  };
+
   CloudburstOL3.prototype.getLayerMetadata = function() {
     if (this._layer != null) {
-      return this._config.layers[this._layer].meta;
+      return this._config[this._layer].meta;
     }
   };
 
@@ -150,18 +155,18 @@ CloudburstOL3 = (function() {
 
   CloudburstOL3.prototype.getLayerPlotDefinitions = function() {
     if (this._layer) {
-      return this._config.layers[this._layer].plot_defs;
+      return this._config[this._layer].plot_defs;
     }
   };
 
   CloudburstOL3.prototype.getInstances = function() {
     if (this._layer != null) {
-      return Object.keys(this._config.layers[this._layer].instances);
+      return Object.keys(this._config[this._layer]['dataset']);
     }
   };
 
   CloudburstOL3.prototype.setInstance = function(instance, noRedraw) {
-    if (indexOf.call(this.getInstances(), instance) >= 0) {
+    if (instance != null) {
       this._instance = instance;
       if ((noRedraw == null) || !noRedraw) {
         this.redraw();
@@ -179,21 +184,28 @@ CloudburstOL3 = (function() {
 
   CloudburstOL3.prototype.getLevels = function(asObj) {
     var i, levels;
-    if ((this._instance != null) && (this._layer != null)) {
-      levels = Object.keys(this._config.layers[this._layer].instances[this._instance].levels);
+    if ((this._instance != null) && (this._layer != null) && indexOf.call(Object.keys(this._config[this._layer]['dataset'][this._instance]), 'levels') >= 0) {
+      levels = Object.keys(this._config[this._layer]['dataset'][this._instance]['levels']);
       if ((asObj != null) && asObj) {
         levels = (function() {
           var j, len, results;
           results = [];
           for (j = 0, len = levels.length; j < len; j++) {
             i = levels[j];
-            results.push([i, this._config.layers[this._layer].instances[this._instance].levels[i]]);
+            results.push([i, this._config[this._layer]['dataset'][this._instance]['levels'][i]]);
           }
           return results;
         }).call(this);
       }
+      return levels;
     }
-    return levels;
+    if (!asObj) {
+      return ["0"];
+    } else {
+      return {
+        "0": void 0
+      };
+    }
   };
 
   CloudburstOL3.prototype.setLevel = function(level, noRedraw) {
@@ -217,14 +229,14 @@ CloudburstOL3 = (function() {
   CloudburstOL3.prototype.getTindexes = function(asObj) {
     var i, tindexes;
     if ((this._instance != null) && (this._layer != null)) {
-      tindexes = Object.keys(this._config.layers[this._layer].instances[this._instance].indexes);
+      tindexes = Object.keys(this._config[this._layer]['dataset'][this._instance].times);
       if ((asObj != null) && asObj) {
         tindexes = (function() {
           var j, len, results;
           results = [];
           for (j = 0, len = tindexes.length; j < len; j++) {
             i = tindexes[j];
-            results.push([i, this._config.layers[this._layer].instances[this._instance].indexes[i]]);
+            results.push([i, this._config[this._layer]['dataset'][this._instance].times[i]]);
           }
           return results;
         }).call(this);

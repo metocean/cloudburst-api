@@ -3,7 +3,6 @@ init = (json, host) ->
 
   # New Cloudburst OL3 Layer
   cb = new CloudburstOL3(json, host)
-  cb.setLayer('ncep_mslp') # Otherwise default layer will be used
   cb.setOL3LayerTile() # Sets and returns cb.tileLayer
 
   # Use cb.tileLayer as a a ol.Map.layers layer
@@ -33,10 +32,10 @@ init = (json, host) ->
   map = new ol.Map
     target: 'map'
     renderer: 'canvas'
-    layers: [basemap, cb.tileLayer, osm]
+    layers: [basemap, cb.tileLayer]#, osm]
     view: new ol.View
-      center: new ol.proj.fromLonLat([174.7772, -41.2889])
-      zoom: 5
+      center: new ol.proj.fromLonLat([-98.35, 39.5])
+      zoom: 4
 
   change_header = (new_t) ->
     t = document.getElementById('time')
@@ -46,7 +45,7 @@ init = (json, host) ->
 
   $(document).ready ->
     setInterval () ->
-      # Change the time step every 10 seconds, reset the OL3Layer
+      # Change the time step every n seconds, reset the OL3Layer
       cb.forward()
       change_header(cb.getTindex(yes))
       cb.setOL3LayerTile({'opacity': 0.1, 'visible': no})
@@ -54,7 +53,7 @@ init = (json, host) ->
       source = map.getLayers().item(1).getSource()
       # Refresh the tiles
       source.setTileLoadFunction(source.getTileLoadFunction());
-    , 15*1000
+    , 20*1000
 
 main = ->
   # New Cloudburst, given a compatible host

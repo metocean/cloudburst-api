@@ -6,9 +6,9 @@ CloudburstMapType = (config, host, map) ->
   @_host = host
   @_layers = @getLayers()
   @_map = map
-  @opacity = 0.5
+  @opacity = 0.8
 
-  @setLayer(@_layers[3], no)
+  @setLayer(@getLayers()[0], no)
   @setInstance(@getInstances()[0], no)
   @setTindex(@getTindexes()[0], no)
   @setLevel(@getLevels()[0], no)
@@ -49,7 +49,7 @@ CloudburstMapType.prototype.getTile = (coord, zoom, ownerDocument) ->
   x = normalizedCoord.x
   # y = (1 << zoom) - coord.y - 1
   y = bound - normalizedCoord.y - 1
-  url = "#{@_host}/tile/#{@_renderer}/#{@_layer}/#{@_instance}/#{@_tindex}/#{zoom}/#{x}/#{y}.png"
+  url = "#{@_host}/tile/#{@_renderer}/#{@_layer}/#{@_instance}/#{@_tindex}/#{@_level}/#{zoom}/#{x}/#{y}.png"
   if !logging? and logging
     console.log url
   div = ownerDocument.createElement('div')
@@ -67,13 +67,13 @@ CloudburstMapType.prototype.getLayers = (asObj) ->
   # - false: returns the layers as an array of short names
   if @_config?
     if !asObj? or !asObj
-      lyrs = Object.keys(@_config.layers)
+      lyrs = Object.keys(@_config)
     else
-      lyrs = ([lyr, @_config.layers[lyr]] for lyr in Object.keys(@_config.layers))
+      lyrs = ([lyr, @_config[lyr]] for lyr in Object.keys(@_config))
     return lyrs
 
 CloudburstMapType.prototype.setLayer = (layer, noRedraw) ->
-  if (layer in Object.keys(@_config.layers))
+  if (layer in Object.keys(@_config))
     @_layer = layer
     @redraw() if !noRedraw? or !noRedraw
     if logging is on
@@ -88,7 +88,7 @@ CloudburstMapType.prototype.getLayerLegendUrl = (size, orientation) ->
     size = "small" # or "large"
   if !orientation? or !orientation
     orientation = "horiztonal" # or "vertical"
-  layerurl = "#{@_host}/legend/#{size}/#{orientation}/#{@getLayer()}/#{@getInstance()}.png"
+  layerurl = "#{@_host}/legend/#{size}/#{orientation}/#{@_layer}/#{@_instance()}.png"
   return layerurl
 
 CloudburstMapType.prototype.getLayerMetadata = ->
@@ -108,12 +108,12 @@ CloudburstMapType.prototype.getLayerUnits = ->
     @getLayerMetadata().units
 
 CloudburstMapType.prototype.getLayerPlotDefinitions = ->
-  if @_layer
+  if @_layer?
     @_config.layers[@_layer].plot_defs
 
 CloudburstMapType.prototype.getInstances = ->
   if @_layer?
-    Object.keys(@_config.layers[@_layer].instances)
+    Object.keys(@_config[@_layer]['dataset'])
 
 CloudburstMapType.prototype.setInstance = (instance, noRedraw) ->
   if instance in @getInstances()
@@ -127,11 +127,12 @@ CloudburstMapType.prototype.getInstance = ->
   @_instance
 
 CloudburstMapType.prototype.getLevels = (asObj) ->
-  if @_instance? and @_layer?
-    levels = Object.keys(@_config.layers[@_layer].instances[@_instance].levels)
+  if @_instance? and @_layer? and 'levels' in Object.keys @_config[@_layer]['dataset'][@_instance]
+    levels = Object.keys(@_config[@_layer]['dataset'][@_instance]['levels'])
     if asObj? and asObj
-      levels = ([i, @_config.layers[@_layer].instances[@_instance].levels[i]] for i in levels)
-  return levels
+      levels = ([i, @_config.layers[@_layer]['dataset'][@_instance]['levels'][i]] for i in levels)
+    return levels
+  return if !asObj then ["0"] else {"0": undefined}
 
 CloudburstMapType.prototype.setLevel = (level, noRedraw) ->
   if level.toString() in @getLevels()
@@ -149,9 +150,9 @@ CloudburstMapType.prototype.getTindexes = (asObj) ->
   # if named? and named: returns the values (e.g. ["2015-09-01T03:00:00Z"]),
   # else returns the index values (e.g [0,1,2])
   if @_instance? and @_layer?
-    tindexes = Object.keys(@_config.layers[@_layer].instances[@_instance].indexes)
+    tindexes = Object.keys(@_config[@_layer]['dataset'][@_instance].times)
     if asObj? and asObj
-      tindexes = ([i, @_config.layers[@_layer].instances[@_instance].indexes[i]] for i in tindexes)
+      tindexes = ([i, @_config[@_layer]['dataset'][@_instance].times[i]] for i in tindexes)
   return tindexes
 
 CloudburstMapType.prototype.setTindex = (tindex, noRedraw) ->

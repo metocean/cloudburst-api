@@ -3,8 +3,8 @@ make_map = (layers, mapdiv) ->
   mapdiv = if mapdiv? then mapdiv else 'map'
   map = new L.Map mapdiv,
   	layers: layers
-  	center: new L.LatLng -37.7772, 175.2756
-  	zoom: 6
+  	center: new L.LatLng 39.50, -98.35
+  	zoom: 5
   	attributionControl: no
   return map
 

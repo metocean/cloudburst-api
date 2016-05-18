@@ -3,7 +3,6 @@ var init, main;
 init = function(json, host) {
   var basemap, cb, change_header, map, osm;
   cb = new CloudburstOL3(json, host);
-  cb.setLayer('ncep_mslp');
   cb.setOL3LayerTile();
   basemap = new ol.layer.Tile({
     source: new ol.source.XYZ({
@@ -29,10 +28,10 @@ init = function(json, host) {
   map = new ol.Map({
     target: 'map',
     renderer: 'canvas',
-    layers: [basemap, cb.tileLayer, osm],
+    layers: [basemap, cb.tileLayer],
     view: new ol.View({
-      center: new ol.proj.fromLonLat([174.7772, -41.2889]),
-      zoom: 5
+      center: new ol.proj.fromLonLat([-98.35, 39.5]),
+      zoom: 4
     })
   });
   change_header = function(new_t) {
@@ -54,7 +53,7 @@ init = function(json, host) {
       map.getLayers().set(1, cb.tileLayer);
       source = map.getLayers().item(1).getSource();
       return source.setTileLoadFunction(source.getTileLoadFunction());
-    }, 15 * 1000);
+    }, 20 * 1000);
   });
 };
 

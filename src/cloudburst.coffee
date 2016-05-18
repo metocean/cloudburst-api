@@ -9,7 +9,7 @@ class Cloudburst
   loadConfiguration: (cb) ->
     json_config = JSON.parse(JSON.stringify(@url))
     json_config = json_config.replace(/{s}/ , '')
-    json_config += '/layer?show=times'
+    json_config += '/layer?show=times' # TODO should request times as-needed
     $.ajax
       url: json_config
       type: 'GET'

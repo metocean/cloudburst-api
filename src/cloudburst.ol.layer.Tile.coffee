@@ -13,7 +13,7 @@ class CloudburstOL3
     @setLayer(@_layers[0], no)
     @setInstance(@getInstances()[0], no)
     @setTindex(@getTindexes()[0], no)
-    @setLevel(@_levels[0], no)
+    @setLevel(@getLevels()[0], no)
     @setRenderer('mpl', no) # TODO
 
     @tileLayer = undefined
@@ -32,24 +32,25 @@ class CloudburstOL3
     z = tileCoord[0]
     x = tileCoord[1]
     y = tileCoord[2] + (1 << z) # Accounting for bottom-left origin
-    "#{@_host}/tile/#{@_renderer}/#{@_layer}/#{@_instance}/#{@_tindex}/#{z}/#{x}/#{y}.png"
+    "#{@_host}/tile/#{@_renderer}/#{@_layer}/#{@_instance}/#{@_tindex}/#{@_level}/#{z}/#{x}/#{y}.png"
 
   setOL3LayerTile: (options) =>
     # Returns ol.layer.Tile with ol.source.XYZ with custom tileUrlFunction that
     # returns Cloudburst tiles
     options = if !options? then {} else options
     tileLayer = new ol.layer.Tile
-      brightness: if options.brightness? then options.brightness else undefined
-      contrast: if options.contrast? then options.contrast else undefined
-      hue: if options.hue? then options.hue else undefined
+      # brightness: if options.brightness? then options.brightness else undefined
+      # contrast: if options.contrast? then options.contrast else undefined
+      # hue: if options.hue? then options.hue else undefined
       opacity: if options.opacity? then options.opacity else undefined
       preload: if options.preload? then options.preload else undefined
-      saturation: if options.saturation? then options.saturation else undefined
+      # saturation: if options.saturation? then options.saturation else undefined
       visible: if options.visible? then options.visible else undefined
       extent: if options.extent? then options.extent else undefined
       minResolution: if options.minResolution? then options.minResolution else undefined
       maxResolution: if options.maxResolution? then options.maxResolution else undefined
       userInterimTilesOnError: if options.userInterimTilesOnError? then options.userInterimTilesOnError else undefined
+      extent: if options.extent? then options.extent else @getLayerBounds()
       source: new ol.source.XYZ
         attributions: [@getAttribution()]
         tileUrlFunction: (tileCoord, pixelRatio, projection) =>
@@ -66,17 +67,17 @@ class CloudburstOL3
     # - false: returns the layers as an array of short names
     if @_config?
       if !asObj? or !asObj
-        lyrs = Object.keys(@_config.layers)
+        lyrs = Object.keys(@_config)
       else
-        lyrs = ([lyr, @_config.layers[lyr]] for lyr in Object.keys(@_config.layers))
+        lyrs = ([lyr, @_config[lyr]] for lyr in Object.keys(@_config))
       return lyrs
 
   setLayer: (layer, noRedraw) ->
-    if (layer in Object.keys(@_config.layers))
-      @_layer = layer
-      @redraw() if !noRedraw? or !noRedraw
-      if logging is on
-        console.log("Layer set to: #{@_layer}")
+    if @_layers? and layer in @_layers
+        @_layer = layer
+        @redraw() if !noRedraw? or !noRedraw
+        if logging is on
+          console.log("Layer set to: #{@_layer}")
     @
 
   getLayer: ->
@@ -90,9 +91,18 @@ class CloudburstOL3
     layerurl = "#{@_host}/legend/#{size}/#{orientation}/#{@getLayer()}/#{@getInstance()}.png"
     return layerurl
 
+  getLayerBounds: ->
+    # Returns bounds as ol.proj.TransformExtent
+    if @_layer? and @_instance?
+      bounds = @_config[@_layer]['dataset'][@_instance]['bounds']
+      return ol.proj.transformExtent(
+        [bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+        'EPSG:4326', 'EPSG:3857'
+      )
+
   getLayerMetadata: ->
     if @_layer?
-      @_config.layers[@_layer].meta
+      @_config[@_layer].meta
 
   getLayerDescription: ->
     if @_layer?
@@ -108,14 +118,14 @@ class CloudburstOL3
 
   getLayerPlotDefinitions: ->
     if @_layer
-      @_config.layers[@_layer].plot_defs
+      @_config[@_layer].plot_defs
 
   getInstances: ->
     if @_layer?
-      Object.keys(@_config.layers[@_layer].instances)
+      Object.keys(@_config[@_layer]['dataset'])
 
   setInstance: (instance, noRedraw) ->
-    if instance in @getInstances()
+    if instance?
       @_instance = instance
       @redraw() if !noRedraw? or !noRedraw
       if logging is on
@@ -126,11 +136,13 @@ class CloudburstOL3
     @_instance
 
   getLevels: (asObj) ->
-    if @_instance? and @_layer?
-      levels = Object.keys(@_config.layers[@_layer].instances[@_instance].levels)
+    # Vertical dimension
+    if @_instance? and @_layer? and 'levels' in Object.keys @_config[@_layer]['dataset'][@_instance]
+      levels = Object.keys(@_config[@_layer]['dataset'][@_instance]['levels'])
       if asObj? and asObj
-        levels = ([i, @_config.layers[@_layer].instances[@_instance].levels[i]] for i in levels)
-    return levels
+        levels = ([i, @_config[@_layer]['dataset'][@_instance]['levels'][i]] for i in levels)
+      return levels
+    return if !asObj then ["0"] else {"0": undefined}
 
   setLevel: (level, noRedraw) ->
     if level.toString() in @getLevels()
@@ -148,9 +160,9 @@ class CloudburstOL3
     # if named? and named: returns the values (e.g. ["2015-09-01T03:00:00Z"]),
     # else returns the index values (e.g [0,1,2])
     if @_instance? and @_layer?
-      tindexes = Object.keys(@_config.layers[@_layer].instances[@_instance].indexes)
+      tindexes = Object.keys(@_config[@_layer]['dataset'][@_instance].times)
       if asObj? and asObj
-        tindexes = ([i, @_config.layers[@_layer].instances[@_instance].indexes[i]] for i in tindexes)
+        tindexes = ([i, @_config[@_layer]['dataset'][@_instance].times[i]] for i in tindexes)
     return tindexes
 
   setTindex: (tindex, noRedraw) ->
