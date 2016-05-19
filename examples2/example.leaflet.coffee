@@ -38,6 +38,14 @@ make_map = (mapdiv) ->
 
   return map
 
+diff = (ary) ->
+  newA = []
+  i = 1
+  while i < ary.length
+    newA.push ary[i] - (ary[i - 1])
+    i++
+  newA
+
 get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
   # Create a CloudburstTileLayer
   cloudburstTileLayer = L.cloudburstTileLayer host, json,
@@ -91,10 +99,8 @@ sample_layer_control = (json, host) ->
     toggle_el_property(slider_id, 'hidden', off_on)
     if values? and values.length > 0
       moments = (moment.unix(t) for t in values)
-      labels = moments.map (e) ->
-        e.fromNow()
-      times = moments.map (e) ->
-        e.unix()
+      labels = (t.fromNow() for t in moments)
+      times = (t.unix() for t in moments)
       now = (new Date).getTime()/1000
       closest_to_now = closest(times, now)
       slider_class = if slider_class? then slider_class else 'slider'
@@ -103,7 +109,7 @@ sample_layer_control = (json, host) ->
       .slider
         min: Math.min.apply(Math, times)
         max: Math.max.apply(Math, times)
-        step: times[1] - times[0]
+        step: Math.min.apply(Math, diff(times))
         value: closest_to_now
         change: (event, ui) ->
           # When user picks a new time, update the layers on map
@@ -122,7 +128,8 @@ sample_layer_control = (json, host) ->
         labels: labels
         handle: true
         pips: true
-      return
+      # $pips = $(".#{slider_class}").find(".ui-slider-pip") # Hold all the pips for filtering
+      # $pips.filter(".ui-slider-pip-#{t}").show() for t in times
 
   removeOptions = (container_id) ->
     $("##{container_id}").find('option').remove()

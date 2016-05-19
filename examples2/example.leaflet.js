@@ -1,4 +1,4 @@
-var basemap_dark, basemap_light_labels, basemapnames, basemaps, basemaps_urls, callback, cloudburst, debug, get_cloudburst_tileLayer, get_supplementary_tileLayer, global_time, make_map, sample_layer_control, url,
+var basemap_dark, basemap_light_labels, basemapnames, basemaps, basemaps_urls, callback, cloudburst, debug, diff, get_cloudburst_tileLayer, get_supplementary_tileLayer, global_time, make_map, sample_layer_control, url,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 get_supplementary_tileLayer = function(url) {
@@ -56,6 +56,17 @@ make_map = function(mapdiv) {
   }
   L.control.layers(basemapnames).addTo(map);
   return map;
+};
+
+diff = function(ary) {
+  var i, newA;
+  newA = [];
+  i = 1;
+  while (i < ary.length) {
+    newA.push(ary[i] - ary[i - 1]);
+    i++;
+  }
+  return newA;
 };
 
 get_cloudburst_tileLayer = function(host, json, opacity, zIndex) {
@@ -123,20 +134,32 @@ sample_layer_control = function(json, host) {
         }
         return results;
       })();
-      labels = moments.map(function(e) {
-        return e.fromNow();
-      });
-      times = moments.map(function(e) {
-        return e.unix();
-      });
+      labels = (function() {
+        var j, len, results;
+        results = [];
+        for (j = 0, len = moments.length; j < len; j++) {
+          t = moments[j];
+          results.push(t.fromNow());
+        }
+        return results;
+      })();
+      times = (function() {
+        var j, len, results;
+        results = [];
+        for (j = 0, len = moments.length; j < len; j++) {
+          t = moments[j];
+          results.push(t.unix());
+        }
+        return results;
+      })();
       now = (new Date).getTime() / 1000;
       closest_to_now = closest(times, now);
       slider_class = slider_class != null ? slider_class : 'slider';
       slider_id = slider_id != null ? slider_id : 'global-slider';
-      $("." + slider_class).slider({
+      return $("." + slider_class).slider({
         min: Math.min.apply(Math, times),
         max: Math.max.apply(Math, times),
-        step: times[1] - times[0],
+        step: Math.min.apply(Math, diff(times)),
         value: closest_to_now,
         change: function(event, ui) {
           var j, len, lyr, lyr_moments, selected_moment_str;
