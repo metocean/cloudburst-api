@@ -3,8 +3,8 @@
 class Cloudburst
   constructor: ->
     # @url = 'http://www.metoceanview.com:6060'
-    @url = 'http://localhost:6060'
-    # @url = 'http://tapa01.unisys.metocean.co.nz'
+    # @url = 'http://localhost:6060'
+    @url = 'http://tapa01.unisys.metocean.co.nz'
 
   loadConfiguration: (cb) ->
     json_config = JSON.parse(JSON.stringify(@url))
