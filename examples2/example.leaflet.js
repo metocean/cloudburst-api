@@ -8,7 +8,8 @@ get_supplementary_tileLayer = function(url) {
     maxZoom: 21,
     reuseTiles: true,
     zindex: 0,
-    detectRetina: true
+    detectRetina: true,
+    edgeBufferTiles: 2
   });
   return supplementary;
 };
@@ -30,8 +31,8 @@ basemaps = (function() {
 })();
 
 basemapnames = {
-  'Basemap Dark': basemaps[0],
-  'Basemap Light (Labels)': basemaps[1]
+  'Dark': basemaps[0],
+  'Light & Labelled': basemaps[1]
 };
 
 global_time = void 0;
@@ -45,7 +46,8 @@ make_map = function(mapdiv) {
     layers: basemaps,
     center: new L.LatLng(39.50, -98.35),
     zoom: 5,
-    attributionControl: true
+    attributionControl: true,
+    loadingControl: true
   });
   if (debug === true) {
     map.on('click', function(e) {
@@ -64,7 +66,8 @@ get_cloudburst_tileLayer = function(host, json, opacity, zIndex) {
     reuseTiles: false,
     detectRetina: true,
     opacity: opacity != null ? opacity : 1.0,
-    zIndex: zIndex != null ? zIndex : null
+    zIndex: zIndex != null ? zIndex : null,
+    edgeBufferTiles: 2
   });
   return cloudburstTileLayer;
 };
@@ -90,10 +93,15 @@ sample_layer_control = function(json, host) {
   active_layers = [];
   map = make_map();
   toggle_el_property = function(elem_id, property, off_on) {
-    console.log("Turning " + elem_id + " " + property + " " + off_on);
+    if (debug === true) {
+      console.log("Turning " + elem_id + " " + property + " " + off_on);
+    }
     return $("#" + elem_id).prop(property, off_on);
   };
   closest = function(array, target) {
+    if (array === null) {
+      return;
+    }
     return array.reduce(function(prev, curr) {
       if (Math.abs(curr - target) < Math.abs(prev - target)) {
         return curr;
@@ -103,16 +111,36 @@ sample_layer_control = function(json, host) {
     });
   };
   make_global_slider = function(off_on, values, slider_class, slider_id) {
-    var $pips, j, len, t, tooltip, val;
+    var closest_to_now, labels, moments, now, t, times;
     toggle_el_property(slider_id, 'hidden', off_on);
-    if (values != null) {
+    if ((values != null) && values.length > 0) {
+      moments = (function() {
+        var j, len, results;
+        results = [];
+        for (j = 0, len = values.length; j < len; j++) {
+          t = values[j];
+          results.push(moment.unix(t));
+        }
+        return results;
+      })();
+      labels = moments.map(function(e) {
+        return e.fromNow();
+      });
+      times = moments.map(function(e) {
+        return e.unix();
+      });
+      now = (new Date).getTime() / 1000;
+      closest_to_now = closest(times, now);
       slider_class = slider_class != null ? slider_class : 'slider';
       slider_id = slider_id != null ? slider_id : 'global-slider';
       $("." + slider_class).slider({
-        min: Math.min.apply(Math, values),
-        max: Math.max.apply(Math, values),
+        min: Math.min.apply(Math, times),
+        max: Math.max.apply(Math, times),
+        step: times[1] - times[0],
+        value: closest_to_now,
         change: function(event, ui) {
           var j, len, lyr, lyr_moments, selected_moment_str;
+          global_time = ui.value;
           for (j = 0, len = active_layers.length; j < len; j++) {
             lyr = active_layers[j];
             lyr_moments = (function() {
@@ -125,38 +153,20 @@ sample_layer_control = function(json, host) {
               }
               return results;
             })();
-            selected_moment_str = closest(lyr_moments, ui.value);
+            selected_moment_str = closest(lyr_moments, global_time);
             lyr.setTindex(lyr_moments.indexOf(selected_moment_str));
           }
-          global_time = ui.value;
-          return activate_layers();
-        },
-        slide: function(event, ui) {
-          $('[data-toggle="tooltip"]').prop('title', moment.unix(ui.value).format('LLLL'));
+          return activate_layers(false);
         }
       }).slider("pips", {
         first: 'label',
         last: 'label',
         rest: 'pip',
-        labels: (function() {
-          var j, len, results;
-          results = [];
-          for (j = 0, len = values.length; j < len; j++) {
-            t = values[j];
-            results.push(moment.unix(t).fromNow());
-          }
-          return results;
-        })()
-      });
-      $pips = $("." + slider_class).find(".ui-slider-pip");
-      for (j = 0, len = values.length; j < len; j++) {
-        val = values[j];
-        $pips.filter(".ui-slider-pip-" + val).show();
-      }
-      tooltip = '<a href="#" id="global-slider-tooltip" data-toggle="tooltip">&nbsp&nbsp&nbsp&nbsp</a>';
-      $("." + slider_class + " .ui-slider-handle").html(tooltip);
-      $('[data-toggle="tooltip"]').tooltip({
-        placement: 'top'
+        labels: labels
+      }).slider("float", {
+        labels: labels,
+        handle: true,
+        pips: true
       });
     }
   };
@@ -203,15 +213,18 @@ sample_layer_control = function(json, host) {
     return btn.outerHTML;
   };
   make_opacity_slider = function(slider_id, lyr, value, step) {
-    return $("#" + slider_id).slider({
+    $("#" + slider_id).slider({
       min: 0,
       max: 100,
       value: value != null ? value : lyr.options.opacity * 100,
+      suffix: "%",
       step: step != null ? step : 10,
       stop: function(event, ui) {
         slider_id = parseInt(this.id.split("-").slice(-1)[0]);
         active_layers[slider_id].setOpacity(ui.value / 100);
       }
+    }).slider("float", {
+      pips: true
     });
   };
   get_opacity_slider = function(slider_id) {
@@ -243,7 +256,6 @@ sample_layer_control = function(json, host) {
       $(dt).addClass('col-md-2');
       depth = row.insertCell(4);
       $(depth).addClass('col-md-1');
-      console.log(lyr.getLevels());
       if (lyr.getLevels().length > 1) {
         increase = get_button("increase-depth-" + rowi, ['glyphicon', 'glyphicon-circle-arrow-up'], ['btn', 'btn-md', 'decrease-depth', "decrease-depth-" + rowi, 'depth']);
         decrease = get_button("decrease-depth-" + rowi, ['glyphicon', 'glyphicon-circle-arrow-down'], ['btn', 'btn-md', 'increase-depth', "increase-depth-" + rowi, 'depth']);
@@ -281,8 +293,9 @@ sample_layer_control = function(json, host) {
       }
     }).disableSelection();
   };
-  activate_layers = function() {
+  activate_layers = function(refresh_slider) {
     var j, k, l, len, len1, len2, len3, lyr, m, ref, ref1, ref2, ref3, t, t_set, z;
+    refresh_slider = refresh_slider != null ? refresh_slider : true;
     map.eachLayer(function(lyr) {
       var ref;
       if (!(ref = lyr._url, indexOf.call(basemaps_urls, ref) >= 0)) {
@@ -310,7 +323,9 @@ sample_layer_control = function(json, host) {
         t_set.add(moment(t[1], moment.ISO_8601).unix());
       }
     }
-    make_global_slider(false, Array.from(t_set));
+    if (refresh_slider) {
+      make_global_slider(false, Array.from(t_set));
+    }
     return create_layer_table();
   };
   on_modal_layer_change = function(selected_list) {

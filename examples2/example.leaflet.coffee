@@ -5,6 +5,7 @@ get_supplementary_tileLayer = (url) ->
     reuseTiles: yes
     zindex: 0
     detectRetina: yes
+    edgeBufferTiles: 2
   return supplementary
 
 basemap_dark = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png'
@@ -13,8 +14,8 @@ basemap_light_labels = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.p
 basemaps_urls = [basemap_dark, basemap_light_labels]
 basemaps = (get_supplementary_tileLayer(url) for url in basemaps_urls)
 basemapnames = {
-  'Basemap Dark': basemaps[0],
-  'Basemap Light (Labels)': basemaps[1],
+  'Dark': basemaps[0],
+  'Light & Labelled': basemaps[1],
 }
 
 global_time = undefined
@@ -29,6 +30,7 @@ make_map = (mapdiv) ->
     center: new L.LatLng 39.50, -98.35
     zoom: 5
     attributionControl: yes
+    loadingControl: yes
   if debug is on
     map.on 'click', (e) -> alert "Lat (#{e.latlng.lat}, lon (#{e.latlng.lng})"
 
@@ -45,6 +47,7 @@ get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
     detectRetina: yes
     opacity: if opacity? then opacity else 1.0
     zIndex: if zIndex? then zIndex else null
+    edgeBufferTiles: 2
 
   return cloudburstTileLayer
 
@@ -73,51 +76,52 @@ sample_layer_control = (json, host) ->
   map = make_map()
 
   toggle_el_property = (elem_id, property, off_on) ->
-    console.log "Turning #{elem_id} #{property} #{off_on}"
+    if debug is on
+      console.log "Turning #{elem_id} #{property} #{off_on}"
     $("##{elem_id}").prop(property, off_on)
 
   closest = (array, target) ->
     # Returns the Number in array that is closest in value to Number target
+    if array == null
+      return
     array.reduce (prev, curr) ->
       if (Math.abs(curr - target) < Math.abs(prev - target)) then curr else prev
 
   make_global_slider = (off_on, values, slider_class, slider_id) ->
     toggle_el_property(slider_id, 'hidden', off_on)
-    if values?
+    if values? and values.length > 0
+      moments = (moment.unix(t) for t in values)
+      labels = moments.map (e) ->
+        e.fromNow()
+      times = moments.map (e) ->
+        e.unix()
+      now = (new Date).getTime()/1000
+      closest_to_now = closest(times, now)
       slider_class = if slider_class? then slider_class else 'slider'
       slider_id = if slider_id? then slider_id else 'global-slider'
       $(".#{slider_class}")
       .slider
-        min: Math.min.apply(Math, values)
-        max: Math.max.apply(Math, values)
+        min: Math.min.apply(Math, times)
+        max: Math.max.apply(Math, times)
+        step: times[1] - times[0]
+        value: closest_to_now
         change: (event, ui) ->
+          # When user picks a new time, update the layers on map
+          global_time = ui.value # Global, used when new layers are added
           for lyr in active_layers
             lyr_moments = (moment(t[1], moment.ISO_8601).unix() for t in lyr.getTindexes(yes))
-            selected_moment_str = closest(lyr_moments, ui.value)
+            selected_moment_str = closest(lyr_moments, global_time)
             lyr.setTindex(lyr_moments.indexOf(selected_moment_str))
-          global_time = ui.value # Global, used when new layers are added
-          activate_layers()
-        slide: (event, ui) ->
-          # this is a bit of a hack
-          $('[data-toggle="tooltip"]').prop('title', moment.unix(ui.value).format('LLLL'))
-          return
+          activate_layers(false)
       .slider "pips",
         first: 'label'
         last: 'label'
         rest: 'pip'
-        labels: moment.unix(t).fromNow() for t in values
-
-      # Filter pips, marking them along the slider at appropriate and possibly irregular intervals
-      $pips = $(".#{slider_class}").find(".ui-slider-pip") # Hold all the pips for filtering
-      $pips.filter(".ui-slider-pip-#{val}").show() for val in values
-
-      # Tooltip of slider drag button
-      # TODO this is a bit of a hack
-      tooltip = '<a href="#" id="global-slider-tooltip" data-toggle="tooltip">&nbsp&nbsp&nbsp&nbsp</a>'
-      $(".#{slider_class} .ui-slider-handle").html(tooltip)
-      $('[data-toggle="tooltip"]').tooltip
-        placement: 'top'
-
+        labels: labels
+      .slider "float",
+        labels: labels
+        handle: true
+        pips: true
       return
 
   removeOptions = (container_id) ->
@@ -151,15 +155,20 @@ sample_layer_control = (json, host) ->
     return btn.outerHTML
 
   make_opacity_slider = (slider_id, lyr, value, step) ->
-    $("##{slider_id}").slider
+    $("##{slider_id}")
+    .slider
       min: 0
       max: 100
       value: if value? then value else lyr.options.opacity * 100
+      suffix: "%"
       step: if step? then step else 10
       stop: (event, ui) ->
         slider_id = parseInt(this.id.split("-")[-1..][0])
         active_layers[slider_id].setOpacity(ui.value/100)
         return
+    .slider "float",
+      pips: true
+    return
 
   get_opacity_slider = (slider_id)->
     input = document.createElement('div')
@@ -191,7 +200,6 @@ sample_layer_control = (json, host) ->
 
       depth = row.insertCell(4)
       $(depth).addClass 'col-md-1'
-      console.log lyr.getLevels()
       if lyr.getLevels().length > 1
         increase = get_button("increase-depth-#{rowi}", ['glyphicon', 'glyphicon-circle-arrow-up'], ['btn', 'btn-md', 'decrease-depth', "decrease-depth-#{rowi}", 'depth'])
         decrease = get_button("decrease-depth-#{rowi}", ['glyphicon', 'glyphicon-circle-arrow-down'], ['btn', 'btn-md', 'increase-depth', "increase-depth-#{rowi}", 'depth'])
@@ -223,7 +231,8 @@ sample_layer_control = (json, host) ->
     .disableSelection()
     return
 
-  activate_layers = ->
+  activate_layers = (refresh_slider)->
+    refresh_slider = if refresh_slider? then refresh_slider else true
     map.eachLayer (lyr) ->
       map.removeLayer(lyr) if !(lyr._url in basemaps_urls)
     # Displays active layers on the map
@@ -236,7 +245,8 @@ sample_layer_control = (json, host) ->
       lyr.setZIndex(if !(lyr._url in basemaps_urls) then z + 1 else 0)
       z += 1
       t_set.add(moment(t[1], moment.ISO_8601).unix()) for t in lyr.getTindexes(yes)
-    make_global_slider(off, Array.from(t_set))
+    if refresh_slider
+      make_global_slider(off, Array.from(t_set))
     # Adds all active layers to the table of layers
     create_layer_table()
 
