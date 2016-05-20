@@ -43,7 +43,7 @@ make_map = function(mapdiv) {
   var map;
   mapdiv = mapdiv != null ? mapdiv : 'map';
   map = new L.Map(mapdiv, {
-    layers: basemaps,
+    layers: basemaps[1],
     center: new L.LatLng(39.50, -98.35),
     zoom: 5,
     attributionControl: true,

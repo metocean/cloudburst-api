@@ -26,7 +26,7 @@ make_map = (mapdiv) ->
   # Create a leaflet map with a list of tilelayers
   mapdiv = if mapdiv? then mapdiv else 'map'
   map = new L.Map mapdiv,
-    layers: basemaps
+    layers: basemaps[1]
     center: new L.LatLng 39.50, -98.35
     zoom: 5
     attributionControl: yes
