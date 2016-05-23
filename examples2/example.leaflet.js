@@ -84,7 +84,7 @@ get_cloudburst_tileLayer = function(host, json, opacity, zIndex) {
 };
 
 sample_layer_control = function(json, host) {
-  var activate_layers, active_layers, appendElements, closest, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_global_slider, make_opacity_slider, map, move_in_array, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property;
+  var activate_layers, active_layers, appendElements, closest, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_global_slider, make_opacity_slider, map, move_in_array, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property, zoom_to_layer;
   HTMLElement.prototype.removeClass = function(remove) {
     var classes, i, j, newClassName, ref;
     classes = this.className.split(" ");
@@ -257,7 +257,7 @@ sample_layer_control = function(json, host) {
     return input.outerHTML;
   };
   create_layer_table = function(table_id) {
-    var _dt, decrease, depth, dt, increase, j, layer_name, legend, legendsrc, len, lyr, opacity_slider, ref, remove_button, row, rowi;
+    var _dt, decrease, depth, dt, increase, j, layer_name, layer_utils, legend, legendsrc, len, lyr, opacity_slider, ref, remove_button, row, rowi, zoom_to_layer_button;
     table_id = table_id != null ? table_id : "layer-table";
     document.getElementById(table_id).innerHTML = null;
     ref = active_layers.reverse();
@@ -265,9 +265,11 @@ sample_layer_control = function(json, host) {
       lyr = ref[rowi];
       row = document.getElementById(table_id).insertRow(-1);
       rowi = document.getElementById(table_id).rows.length - 1;
-      remove_button = row.insertCell(0);
-      remove_button.innerHTML = get_button("remove-layer-" + rowi, ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer']);
-      $(remove_button).addClass('col-md-1');
+      layer_utils = row.insertCell(0);
+      remove_button = get_button("remove-layer-" + rowi, ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer']);
+      zoom_to_layer_button = get_button("zoom-layer-" + rowi, ['glyphicon', 'glyphicon-screenshot'], ['btn', 'btn-default', 'btn-xs', 'zoom-to-layer']);
+      layer_utils.innerHTML = remove_button + zoom_to_layer_button;
+      $(layer_utils).addClass('col-md-1');
       layer_name = row.insertCell(1);
       layer_name.innerHTML = "<strong>" + (lyr.getLayerName()) + "</strong><br>" + (lyr.getInstance());
       $(layer_name).addClass('col-md-3');
@@ -310,6 +312,9 @@ sample_layer_control = function(json, host) {
     $(".remove-layer").click(function() {
       active_layers.splice(parseInt(this.id.split("-").slice(-1)[0]), 1);
       return activate_layers();
+    });
+    $(".zoom-to-layer").click(function() {
+      return zoom_to_layer(this.id.split("-").slice(-1)[0]);
     });
     $("#layer-table-parent tbody").sortable({
       start: function(event, ui) {
@@ -358,6 +363,9 @@ sample_layer_control = function(json, host) {
     }
     return create_layer_table();
   };
+  zoom_to_layer = function(i) {
+    return map.fitBounds(active_layers[i].getBounds());
+  };
   on_modal_layer_change = function(selected_list) {
     cloudburstTileLayer.setLayer($('option:selected', selected_list).attr('title'));
     do_appendElements(false, true);
@@ -387,6 +395,7 @@ sample_layer_control = function(json, host) {
       }
     }
     active_layers.push(selected_lyr);
+    zoom_to_layer(active_layers.length - 1);
     return activate_layers();
   };
   prepare_modal_dialogue = function(modal_div) {

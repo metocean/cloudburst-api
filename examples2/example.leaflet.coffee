@@ -189,9 +189,11 @@ sample_layer_control = (json, host) ->
     for lyr, rowi in active_layers.reverse()
       row = document.getElementById(table_id).insertRow(-1)
       rowi = document.getElementById(table_id).rows.length - 1
-      remove_button = row.insertCell(0)
-      remove_button.innerHTML = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
-      $(remove_button).addClass 'col-md-1'
+      layer_utils = row.insertCell(0)
+      remove_button = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
+      zoom_to_layer_button = get_button("zoom-layer-#{rowi}", ['glyphicon', 'glyphicon-screenshot'], ['btn', 'btn-default', 'btn-xs', 'zoom-to-layer'])
+      layer_utils.innerHTML = remove_button + zoom_to_layer_button
+      $(layer_utils).addClass 'col-md-1'
 
       layer_name = row.insertCell(1)
       layer_name.innerHTML = "<strong>#{lyr.getLayerName()}</strong><br>#{lyr.getInstance()}"
@@ -233,6 +235,8 @@ sample_layer_control = (json, host) ->
     $(".remove-layer").click ->
       active_layers.splice(parseInt(this.id.split("-")[-1..][0]), 1)
       activate_layers()
+    $(".zoom-to-layer").click ->
+      zoom_to_layer this.id.split("-")[-1..][0]
     $("#layer-table-parent tbody").sortable
       start: (event, ui) ->
         ui.item.startPos = ui.item.index()
@@ -242,7 +246,7 @@ sample_layer_control = (json, host) ->
     .disableSelection()
     return
 
-  activate_layers = (refresh_slider)->
+  activate_layers = (refresh_slider) ->
     refresh_slider = if refresh_slider? then refresh_slider else true
     map.eachLayer (lyr) ->
       map.removeLayer(lyr) if !(lyr._url in basemaps_urls)
@@ -262,6 +266,9 @@ sample_layer_control = (json, host) ->
       make_global_slider(off, Array.from(t_set))
     # Adds all active layers to the table of layers
     create_layer_table()
+
+  zoom_to_layer = (i) ->
+    map.fitBounds active_layers[i].getBounds()
 
   on_modal_layer_change = (selected_list) ->
     cloudburstTileLayer.setLayer($('option:selected', selected_list).attr('title'))
@@ -283,6 +290,7 @@ sample_layer_control = (json, host) ->
       else
         selected_lyr.setTindex(0)
     active_layers.push(selected_lyr)
+    zoom_to_layer active_layers.length - 1
     activate_layers()
 
   prepare_modal_dialogue = (modal_div) ->
