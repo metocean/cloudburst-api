@@ -145,11 +145,12 @@ L.CloudburstTileLayer = L.TileLayer.extend
 
   getTindexes: (asObj) ->
     # Time-indexes (tindexes)
-    if @_instance? and @_layer? and 'times' in Object.keys(@_config[@_layer]['dataset'][@_instance])
+    if @_instance? and @_layer? and 'times' in Object.keys @_config[@_layer]['dataset'][@_instance]
       tindexes = Object.keys(@_config[@_layer]['dataset'][@_instance].times)
       if asObj? and asObj
         tindexes = ([i, @_config[@_layer]['dataset'][@_instance].times[i]] for i in tindexes)
       return tindexes
+    return if !asObj then ["0"] else [["0", undefined]]
 
   setTindex: (tindex, noRedraw) ->
     if tindex.toString() in @getTindexes()
@@ -160,8 +161,10 @@ L.CloudburstTileLayer = L.TileLayer.extend
     @
 
   getTindex: (as_time_string) ->
-    console.log @_tindex, @getTindexes(yes)[@_tindex][1]
-    if !as_time_string? then @_tindex else @getTindexes(yes)[@_tindex][1]
+    if !as_time_string?
+      return @_tindex
+    else
+      return @getTindexes(yes)[@_tindex][1]
 
   getRenderer: ->
     @_renderer

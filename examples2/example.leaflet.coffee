@@ -202,7 +202,11 @@ sample_layer_control = (json, host) ->
       $(opacity_slider).addClass 'col-md-2'
 
       dt = row.insertCell(3)
-      dt.innerHTML = moment(lyr.getTindex(yes), moment.ISO_8601).format('llll')
+      _dt = lyr.getTindex(yes)
+      if _dt?
+        dt.innerHTML = moment(_dt, moment.ISO_8601).format('llll')
+      else
+        dt.innerHTML = "<span>N/A<span>"
       $(dt).addClass 'col-md-2'
 
       depth = row.insertCell(4)
@@ -251,7 +255,9 @@ sample_layer_control = (json, host) ->
     for lyr in active_layers
       lyr.setZIndex(if !(lyr._url in basemaps_urls) then z + 1 else 0)
       z += 1
-      t_set.add(moment(t[1], moment.ISO_8601).unix()) for t in lyr.getTindexes(yes)
+      _tindexes = lyr.getTindexes(yes)
+      if _tindexes[0][1]?
+        t_set.add(moment(t[1], moment.ISO_8601).unix()) for t in _tindexes
     if refresh_slider
       make_global_slider(off, Array.from(t_set))
     # Adds all active layers to the table of layers
@@ -269,10 +275,13 @@ sample_layer_control = (json, host) ->
     selected_lyr.setInstance $('option:selected', $('#instances')).val() #$('option:selected', $('#instances')).attr('title')
 
     if global_time?
-      lyr_moments = (moment(t[1], moment.ISO_8601).unix() for t in selected_lyr.getTindexes(yes))
-      selected_moment_str = closest(lyr_moments, global_time)
-      selected_lyr.setTindex(lyr_moments.indexOf(selected_moment_str))
-
+      _lyr_t = selected_lyr.getTindexes(yes)
+      if _lyr_t[0][1]?
+        lyr_moments = (moment(t[1], moment.ISO_8601).unix() for t in _lyr_t)
+        selected_moment_str = closest(lyr_moments, global_time)
+        selected_lyr.setTindex(lyr_moments.indexOf(selected_moment_str))
+      else
+        selected_lyr.setTindex(0)
     active_layers.push(selected_lyr)
     activate_layers()
 

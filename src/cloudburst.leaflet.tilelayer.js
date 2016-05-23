@@ -217,6 +217,11 @@ L.CloudburstTileLayer = L.TileLayer.extend({
       }
       return tindexes;
     }
+    if (!asObj) {
+      return ["0"];
+    } else {
+      return [["0", void 0]];
+    }
   },
   setTindex: function(tindex, noRedraw) {
     var ref;
@@ -232,7 +237,6 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     return this;
   },
   getTindex: function(as_time_string) {
-    console.log(this._tindex, this.getTindexes(true)[this._tindex][1]);
     if (as_time_string == null) {
       return this._tindex;
     } else {

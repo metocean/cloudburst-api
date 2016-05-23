@@ -257,7 +257,7 @@ sample_layer_control = function(json, host) {
     return input.outerHTML;
   };
   create_layer_table = function(table_id) {
-    var decrease, depth, dt, increase, j, layer_name, legend, legendsrc, len, lyr, opacity_slider, ref, remove_button, row, rowi;
+    var _dt, decrease, depth, dt, increase, j, layer_name, legend, legendsrc, len, lyr, opacity_slider, ref, remove_button, row, rowi;
     table_id = table_id != null ? table_id : "layer-table";
     document.getElementById(table_id).innerHTML = null;
     ref = active_layers.reverse();
@@ -275,7 +275,12 @@ sample_layer_control = function(json, host) {
       opacity_slider.innerHTML = get_opacity_slider("opacity-slider-" + rowi);
       $(opacity_slider).addClass('col-md-2');
       dt = row.insertCell(3);
-      dt.innerHTML = moment(lyr.getTindex(true), moment.ISO_8601).format('llll');
+      _dt = lyr.getTindex(true);
+      if (_dt != null) {
+        dt.innerHTML = moment(_dt, moment.ISO_8601).format('llll');
+      } else {
+        dt.innerHTML = "<span>N/A<span>";
+      }
       $(dt).addClass('col-md-2');
       depth = row.insertCell(4);
       $(depth).addClass('col-md-1');
@@ -317,7 +322,7 @@ sample_layer_control = function(json, host) {
     }).disableSelection();
   };
   activate_layers = function(refresh_slider) {
-    var j, k, l, len, len1, len2, len3, lyr, m, ref, ref1, ref2, ref3, t, t_set, z;
+    var _tindexes, j, k, l, len, len1, len2, len3, lyr, m, ref, ref1, ref2, t, t_set, z;
     refresh_slider = refresh_slider != null ? refresh_slider : true;
     map.eachLayer(function(lyr) {
       var ref;
@@ -340,10 +345,12 @@ sample_layer_control = function(json, host) {
       lyr = active_layers[l];
       lyr.setZIndex(!(ref2 = lyr._url, indexOf.call(basemaps_urls, ref2) >= 0) ? z + 1 : 0);
       z += 1;
-      ref3 = lyr.getTindexes(true);
-      for (m = 0, len3 = ref3.length; m < len3; m++) {
-        t = ref3[m];
-        t_set.add(moment(t[1], moment.ISO_8601).unix());
+      _tindexes = lyr.getTindexes(true);
+      if (_tindexes[0][1] != null) {
+        for (m = 0, len3 = _tindexes.length; m < len3; m++) {
+          t = _tindexes[m];
+          t_set.add(moment(t[1], moment.ISO_8601).unix());
+        }
       }
     }
     if (refresh_slider) {
@@ -357,23 +364,27 @@ sample_layer_control = function(json, host) {
     document.getElementById("modal-layer-info").innerHTML = cloudburstTileLayer.getLayerDescription();
   };
   on_modal_layer_confirm = function() {
-    var lyr_moments, selected_lyr, selected_moment_str, t;
+    var _lyr_t, lyr_moments, selected_lyr, selected_moment_str, t;
     selected_lyr = get_cloudburst_tileLayer(host, json);
     selected_lyr.setLayer($('option:selected', $('#layers'))[0].title);
     selected_lyr.setInstance($('option:selected', $('#instances')).val());
     if (global_time != null) {
-      lyr_moments = (function() {
-        var j, len, ref, results;
-        ref = selected_lyr.getTindexes(true);
-        results = [];
-        for (j = 0, len = ref.length; j < len; j++) {
-          t = ref[j];
-          results.push(moment(t[1], moment.ISO_8601).unix());
-        }
-        return results;
-      })();
-      selected_moment_str = closest(lyr_moments, global_time);
-      selected_lyr.setTindex(lyr_moments.indexOf(selected_moment_str));
+      _lyr_t = selected_lyr.getTindexes(true);
+      if (_lyr_t[0][1] != null) {
+        lyr_moments = (function() {
+          var j, len, results;
+          results = [];
+          for (j = 0, len = _lyr_t.length; j < len; j++) {
+            t = _lyr_t[j];
+            results.push(moment(t[1], moment.ISO_8601).unix());
+          }
+          return results;
+        })();
+        selected_moment_str = closest(lyr_moments, global_time);
+        selected_lyr.setTindex(lyr_moments.indexOf(selected_moment_str));
+      } else {
+        selected_lyr.setTindex(0);
+      }
     }
     active_layers.push(selected_lyr);
     return activate_layers();

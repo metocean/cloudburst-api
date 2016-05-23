@@ -2,7 +2,7 @@ var Cloudburst;
 
 Cloudburst = (function() {
   function Cloudburst() {
-    this.url = 'http://tapa01.unisys.metocean.co.nz';
+    this.url = 'http://localhost:6060';
   }
 
   Cloudburst.prototype.loadConfiguration = function(cb) {
