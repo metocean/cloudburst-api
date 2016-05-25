@@ -1,21 +1,21 @@
 # coffee -cb src/cloudburst.coffee
 
+# HOST = 'http://www.metoceanview.com:6060'
+HOST = 'http://localhost:6060'
+# HOST = 'http://tapa01.unisys.metocean.co.nz'
+
 class Cloudburst
   constructor: ->
-    # @url = 'http://www.metoceanview.com:6060'
-    @url = 'http://localhost:6060'
-    # @url = 'http://tapa01.unisys.metocean.co.nz'
+    @url = HOST + "/layer"
 
   loadConfiguration: (cb) ->
-    json_config = JSON.parse(JSON.stringify(@url))
-    json_config = json_config.replace(/{s}/ , '')
-    json_config += '/layer?show=times' # TODO should request times as-needed
+    # TODO tags filter?
     $.ajax
-      url: json_config
+      url: @url
       type: 'GET'
       jsonpCallback: 'read_layers_callback'
       # jsonp: false
       dataType: 'jsonp'
       success: (data, status, response) =>
         if cb? and status is 'success'
-          cb(data, @url)
+          cb(data, HOST)

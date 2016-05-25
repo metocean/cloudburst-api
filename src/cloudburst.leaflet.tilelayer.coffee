@@ -8,8 +8,6 @@ L.CloudburstTileLayer = L.TileLayer.extend
     zoomOffset: 0
     detectRetina: true
 
-  setUrl: undefined
-
   initialize: (cloudbursturl, config, options) ->
     # cloudbursturl: host for capability requests
     if not config
@@ -218,3 +216,6 @@ L.CloudburstTileLayer = L.TileLayer.extend
 
 L.cloudburstTileLayer = (cloudbursturl, json, options) ->
   new L.CloudburstTileLayer cloudbursturl, json, options
+
+# L.cloudburstInstance = (cloudbursturl, layerid, instanceid, options) ->
+#   new L.CloudburstInstance cloudbursturl, layerid, instanceid

@@ -11,7 +11,6 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     zoomOffset: 0,
     detectRetina: true
   },
-  setUrl: void 0,
   initialize: function(cloudbursturl, config, options) {
     var layer_i;
     if (!config) {

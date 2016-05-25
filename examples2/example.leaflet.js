@@ -1,4 +1,4 @@
-var basemap_dark, basemap_light_labels, basemapnames, basemaps, basemaps_urls, callback, cloudburst, debug, diff, get_cloudburst_tileLayer, get_supplementary_tileLayer, global_time, make_map, sample_layer_control, url,
+var appendElements, basemap_dark, basemap_light_labels, basemapnames, basemaps, basemaps_urls, callback, closest, cloudburst, debug, diff, do_appendElements, get_button, get_cloudburst_tileLayer, get_opacity_slider, get_supplementary_tileLayer, global_time, make_map, move_in_array, on_modal_layer_change, prepare_modal_dialogue, removeOptions, sample_layer_control, toggle_el_property, url, zoom_to_layer,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 get_supplementary_tileLayer = function(url) {
@@ -69,6 +69,100 @@ diff = function(ary) {
   return newA;
 };
 
+move_in_array = function(array, old_index, new_index) {
+  array.splice(new_index, 0, array.splice(old_index, 1)[0]);
+  return array;
+};
+
+toggle_el_property = function(elem_id, property, off_on) {
+  if (debug === true) {
+    console.log("Turning " + elem_id + " " + property + " " + off_on);
+  }
+  return $("#" + elem_id).prop(property, off_on);
+};
+
+closest = function(array, target) {
+  if (array === null) {
+    return;
+  }
+  return array.reduce(function(prev, curr) {
+    if (Math.abs(curr - target) < Math.abs(prev - target)) {
+      return curr;
+    } else {
+      return prev;
+    }
+  });
+};
+
+removeOptions = function(container_id) {
+  return $("#" + container_id).find('option').remove();
+};
+
+appendElements = function(container_id, element, content, title, className, role, id) {
+  var el;
+  el = document.createElement(element);
+  el.innerHTML = content;
+  if (title != null) {
+    el.setAttribute('title', title);
+  }
+  document.getElementById(container_id).appendChild(el);
+};
+
+get_opacity_slider = function(slider_id) {
+  var input;
+  input = document.createElement('div');
+  input.setAttribute('id', slider_id);
+  return input.outerHTML;
+};
+
+do_appendElements = function(tileLayer, refresh_layers, refresh_instances) {
+  var instance, j, k, len, len1, lyr, ref, ref1;
+  if ((refresh_layers == null) || refresh_layers) {
+    removeOptions('layers');
+    ref = tileLayer.getLayers(true);
+    for (j = 0, len = ref.length; j < len; j++) {
+      lyr = ref[j];
+      appendElements('layers', 'option', lyr[1].meta.name, lyr[0]);
+    }
+  }
+  if ((refresh_instances == null) || refresh_instances) {
+    removeOptions('instances');
+    ref1 = tileLayer.getInstances();
+    for (k = 0, len1 = ref1.length; k < len1; k++) {
+      instance = ref1[k];
+      appendElements('instances', 'option', instance);
+    }
+  }
+};
+
+get_button = function(id, icon_classes, button_classes) {
+  var btn, span;
+  btn = document.createElement('button');
+  span = document.createElement('span');
+  span.setAttribute('class', icon_classes.join(' '));
+  btn.innerHTML = span.outerHTML;
+  btn.setAttribute('type', 'button');
+  btn.setAttribute('class', button_classes.join(' '));
+  btn.setAttribute('id', id);
+  return btn.outerHTML;
+};
+
+on_modal_layer_change = function(tileLayer, selected_list) {
+  tileLayer.setLayer($('option:selected', selected_list).attr('title'));
+  do_appendElements(tileLayer, false, true);
+  document.getElementById("modal-layer-info").innerHTML = tileLayer.getLayerDescription();
+};
+
+prepare_modal_dialogue = function(tileLayer, modal_div) {
+  do_appendElements(tileLayer, true, true);
+  modal_div = modal_div != null ? modal_div : "modal-layer-info";
+  return document.getElementById(modal_div).innerHTML = tileLayer.getLayerDescription();
+};
+
+zoom_to_layer = function(map, tileLayer) {
+  return map.fitBounds(tileLayer.getBounds());
+};
+
 get_cloudburst_tileLayer = function(host, json, opacity, zIndex) {
   var cloudburstTileLayer;
   cloudburstTileLayer = L.cloudburstTileLayer(host, json, {
@@ -84,43 +178,10 @@ get_cloudburst_tileLayer = function(host, json, opacity, zIndex) {
 };
 
 sample_layer_control = function(json, host) {
-  var activate_layers, active_layers, appendElements, closest, cloudburstTileLayer, create_layer_table, do_appendElements, get_button, get_opacity_slider, make_global_slider, make_opacity_slider, map, move_in_array, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property, zoom_to_layer;
-  HTMLElement.prototype.removeClass = function(remove) {
-    var classes, i, j, newClassName, ref;
-    classes = this.className.split(" ");
-    newClassName = '';
-    for (i = j = 0, ref = classes.length; j < ref; i = j += 1) {
-      if (classes[i] !== remove) {
-        newClassName += classes[i] + " ";
-      }
-    }
-    return this.className = newClassName;
-  };
-  move_in_array = function(array, old_index, new_index) {
-    array.splice(new_index, 0, array.splice(old_index, 1)[0]);
-    return array;
-  };
+  var activate_layers, active_layers, cloudburstTileLayer, create_layer_table, make_global_slider, make_opacity_slider, map, on_modal_layer_confirm;
   cloudburstTileLayer = get_cloudburst_tileLayer(host, json);
   active_layers = [];
   map = make_map();
-  toggle_el_property = function(elem_id, property, off_on) {
-    if (debug === true) {
-      console.log("Turning " + elem_id + " " + property + " " + off_on);
-    }
-    return $("#" + elem_id).prop(property, off_on);
-  };
-  closest = function(array, target) {
-    if (array === null) {
-      return;
-    }
-    return array.reduce(function(prev, curr) {
-      if (Math.abs(curr - target) < Math.abs(prev - target)) {
-        return curr;
-      } else {
-        return prev;
-      }
-    });
-  };
   make_global_slider = function(off_on, values, slider_class, slider_id) {
     var closest_to_now, labels, moments, now, t, times;
     toggle_el_property(slider_id, 'hidden', off_on);
@@ -193,48 +254,6 @@ sample_layer_control = function(json, host) {
       });
     }
   };
-  removeOptions = function(container_id) {
-    return $("#" + container_id).find('option').remove();
-  };
-  appendElements = function(container_id, element, content, title, className, role, id) {
-    var el;
-    el = document.createElement(element);
-    el.innerHTML = content;
-    if (title != null) {
-      el.setAttribute('title', title);
-    }
-    document.getElementById(container_id).appendChild(el);
-  };
-  do_appendElements = function(refresh_layers, refresh_instances) {
-    var instance, j, k, len, len1, lyr, ref, ref1;
-    if ((refresh_layers == null) || refresh_layers) {
-      removeOptions('layers');
-      ref = cloudburstTileLayer.getLayers(true);
-      for (j = 0, len = ref.length; j < len; j++) {
-        lyr = ref[j];
-        appendElements('layers', 'option', lyr[1].meta.name, lyr[0]);
-      }
-    }
-    if ((refresh_instances == null) || refresh_instances) {
-      removeOptions('instances');
-      ref1 = cloudburstTileLayer.getInstances();
-      for (k = 0, len1 = ref1.length; k < len1; k++) {
-        instance = ref1[k];
-        appendElements('instances', 'option', instance);
-      }
-    }
-  };
-  get_button = function(id, icon_classes, button_classes) {
-    var btn, span;
-    btn = document.createElement('button');
-    span = document.createElement('span');
-    span.setAttribute('class', icon_classes.join(' '));
-    btn.innerHTML = span.outerHTML;
-    btn.setAttribute('type', 'button');
-    btn.setAttribute('class', button_classes.join(' '));
-    btn.setAttribute('id', id);
-    return btn.outerHTML;
-  };
   make_opacity_slider = function(slider_id, lyr, value, step) {
     $("#" + slider_id).slider({
       min: 0,
@@ -249,12 +268,6 @@ sample_layer_control = function(json, host) {
     }).slider("float", {
       pips: true
     });
-  };
-  get_opacity_slider = function(slider_id) {
-    var input;
-    input = document.createElement('div');
-    input.setAttribute('id', slider_id);
-    return input.outerHTML;
   };
   create_layer_table = function(table_id) {
     var _dt, decrease, depth, dt, increase, j, layer_name, layer_utils, legend, legendsrc, len, lyr, opacity_slider, ref, remove_button, row, rowi, zoom_to_layer_button;
@@ -314,7 +327,7 @@ sample_layer_control = function(json, host) {
       return activate_layers();
     });
     $(".zoom-to-layer").click(function() {
-      return zoom_to_layer(this.id.split("-").slice(-1)[0]);
+      return zoom_to_layer(map, active_layers[this.id.split("-").slice(-1)[0]]);
     });
     $("#layer-table-parent tbody").sortable({
       start: function(event, ui) {
@@ -363,14 +376,6 @@ sample_layer_control = function(json, host) {
     }
     return create_layer_table();
   };
-  zoom_to_layer = function(i) {
-    return map.fitBounds(active_layers[i].getBounds());
-  };
-  on_modal_layer_change = function(selected_list) {
-    cloudburstTileLayer.setLayer($('option:selected', selected_list).attr('title'));
-    do_appendElements(false, true);
-    document.getElementById("modal-layer-info").innerHTML = cloudburstTileLayer.getLayerDescription();
-  };
   on_modal_layer_confirm = function() {
     var _lyr_t, lyr_moments, selected_lyr, selected_moment_str, t;
     selected_lyr = get_cloudburst_tileLayer(host, json);
@@ -395,17 +400,12 @@ sample_layer_control = function(json, host) {
       }
     }
     active_layers.push(selected_lyr);
-    zoom_to_layer(active_layers.length - 1);
+    zoom_to_layer(map, active_layers[active_layers.length - 1]);
     return activate_layers();
   };
-  prepare_modal_dialogue = function(modal_div) {
-    do_appendElements(true, true);
-    modal_div = modal_div != null ? modal_div : "modal-layer-info";
-    return document.getElementById(modal_div).innerHTML = cloudburstTileLayer.getLayerDescription();
-  };
-  prepare_modal_dialogue();
+  prepare_modal_dialogue(cloudburstTileLayer);
   $('#layers').change(function() {
-    return on_modal_layer_change(this);
+    return on_modal_layer_change(cloudburstTileLayer, this);
   });
   $('#modal-confirm-add').click(function() {
     return on_modal_layer_confirm();
