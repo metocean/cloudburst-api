@@ -13,6 +13,8 @@
   <script src="../bower_components/leaflet/dist/leaflet.js"></script>
   <link rel="stylesheet" href="../bower_components/leaflet/dist/leaflet.css" />
 
+  <link rel="stylesheet" type="text/css" href="./example.leaflet.css"></style>
+
   <script src="../src/cloudburst2.leaflet.tilelayer.js"></script>
 </head>
 
@@ -23,10 +25,11 @@
     </div>
   </div>
   <div id="main" class="container">
+    <div id="map"></div>
     <table class="table table-striped">
       <tr>
-        <td style="width: 1px;"></td>
-        <td><b>Cloudburst Layer Capabilities</b></td>
+        <th><b>Active Cloudburst Layers</b></th>
+        <th>Capabilities</th><th></th><th></th>
       </tr>
       <!-- ko foreach: layers -->
       <tr>
@@ -47,112 +50,7 @@
       <!-- /ko -->
     </table>
   </div>
-  <script type="text/javascript">
-
-    var cloudburstOptions = {
-      maxZoom: 21,
-      maxNativeZoom: 21,
-      reuseTiles: true,
-      detectRetina: true,
-      opacity: 1.0,
-      zIndex: null
-    };
-    function get_cloudburst_tileLayer(templateUrl, options) {
-      return L.cloudburstTileLayer(templateUrl, options)
-    }
-
-    function LayersViewModel() {
-      var self = this;
-      self.layersURI = 'http://localhost:6060/layer';
-      self.layers = ko.observableArray();
-
-      self.ajax = function(uri, method, data) {
-        var request = {
-          url: uri,
-          type: method,
-          jsonpCallback: 'read_layers_callback',
-          contentType: "application/json",
-          accepts: "application/json",
-          cache: false,
-          dataType: 'jsonp',
-          data: JSON.stringify(data),
-          error: function(jqXHR) {
-            console.log("ajax error " + jqXHR.status);
-          }
-        };
-        return $.ajax(request);
-      }
-
-      self.ajax(self.layersURI, 'GET').done(function(data) {
-        var layers = Object.keys(data);
-        for (var i = 0; i < layers.length; i++) {
-          self.layers.push({
-            layerID: ko.observable(layers[i]),
-            instances: ko.observableArray(Object.keys(data[layers[i]].dataset)),
-            title: ko.observable(data[layers[i]].meta.name),
-            description: ko.observable(data[layers[i]].meta.description),
-            units: ko.observable(data[layers[i]].meta.unit_system)
-          });
-        }
-      });
-
-      self.getLayer = function(layer) {
-        var path = self.layersURI + '/' + layer.layerID();
-        self.ajax(path, 'GET').done(function(data) {
-          return data;
-        });
-      }
-
-      self.getInstances = function(layer) {
-        return layer.instances();
-      }
-
-      self.getInstance = function(layer, instanceID, callback) {
-        var path = self.layersURI + '/' + layer.layerID() + '/' + instanceID;
-        self.ajax(path, 'GET').done(function(data) {
-          return callback(data);
-        });
-      }
-
-      self.getTimes = function(layer, instanceID, callback) {
-        var path = self.layersURI + '/' + layer.layerID() + '/' + instanceID + '/times';
-        self.ajax(path, 'GET').done(function(data) {
-          return callback(data);
-        })
-      }
-
-      // self.getLevels = function(layer, instanceID, callback)
-
-      self.getSampleTile = function(layer) {
-        var instance = self.getInstance(layer, layer.instances()[0], function(data) {
-          var templateURL = data.links; // TODO this will change to an object, where we'd want data.resources.tile, and these substitutions won't be required
-          templateURL = templateURL.replace('<zoom>', '{z}');
-          templateURL = templateURL.replace('<x>', '{x}');
-          templateURL = templateURL.replace('<y>', '{y}');
-          self.getTimes(layer, layer.instances()[0], function(data) {
-            var times = new Array;
-            for (var t in data) {
-              times.push(data[t]);
-            }
-            var levels;
-            var cbtl = get_cloudburst_tileLayer(templateURL,times, levels, cloudburstOptions);
-            console.log(cbtl, '<<');
-            cbtl.forward();
-          });
-        });
-      }
-    }
-
-    function LayerViewModel() {
-      var self = this;
-      self.layerID = ko.observable();
-
-      LayersViewModel.getLayer(self.layerID());
-    }
-
-    var LayersViewModel = new LayersViewModel();
-    ko.applyBindings(LayersViewModel, $('#main')[0]);
-  </script>
+  <script src="example.leaflet.js"></script>
 </body>
 
 </html>

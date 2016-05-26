@@ -41,8 +41,6 @@ L.CloudburstTileLayer = L.TileLayer.extend
     if !@hasTimes
       @_time = 0
       return @
-    console.log "let's set the time, now is "
-    # console.log "and we want ", time
     else if time in @getTimes()
       @_time = time.toString()
       @redraw() if !noRedraw? or !noRedraw
@@ -56,7 +54,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
       return
     t = @getTime()
     if t? and @getTimes().indexOf(t) > 0
-      @setTime(t - 1, noRedraw)
+      @setTime(times[times.indexOf(t)-1], noRedraw)
 
   forward: (noRedraw) ->
     if !@hasTimes
@@ -64,9 +62,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
     t = @getTime()
     times = @getTimes()
     if t? and times.indexOf(t) < times.length - 1
-      console.log 'now is', @getTime()
-      @setTime(t + 1, noRedraw)
-      console.log 'forward!', @getTime()
+      @setTime(times[times.indexOf(t)+1], noRedraw)
 
   higher: (noRedraw) ->
     if !@hasLevels
@@ -74,7 +70,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
     l = @getLevel()
     levels = @getLevels()
     if l? and levels.indexOf(l) < levels.length - 1
-      @setLevel(l, noRedraw)
+      @setLevel(levels[levels.indexOf(l)+1], noRedraw)
 
   deeper: (noRedraw) ->
     if !@hasLevels
@@ -82,13 +78,13 @@ L.CloudburstTileLayer = L.TileLayer.extend
     l = @getLevel()
     levels = @getLevels()
     if l? and levels.indexOf(l) > 0
-      @setLevel(l, noRedraw)
+      @setLevel(levels[levels.indexOf(l)-1], noRedraw)
 
   getTileUrl: (coords) ->
     L.TileLayer.prototype.getTileUrl
-      .call @, coords
-      .replace '<time>', @getTime()
-      .replace '<level>', @getLevel()
+      .call(@, coords)
+      .replace('<time>', 0) # @getTimes.indexOf(@getTime())) # TODO will need to change when API fixed
+      .replace('<level>', 0) # @getLevels.indexOf(getLevel())) # TODO will need to change when API fixed
 
 L.cloudburstTileLayer = (urlTemplate, options) ->
   new L.CloudburstTileLayer(urlTemplate, options)
