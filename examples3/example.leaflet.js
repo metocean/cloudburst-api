@@ -85,9 +85,6 @@
       self.getSampleTile = function(layer) {
         var instance = self.getInstance(layer, layer.instances()[0], function(data) {
           var templateURL = self.tilesURI + data.links; // TODO this will change to an object, where we'd want data.resources.tile, and these substitutions won't be required
-          templateURL = templateURL.replace('<zoom>', '{z}');
-          templateURL = templateURL.replace('<x>', '{x}');
-          templateURL = templateURL.replace('<y>', '{y}');
           self.getTimes(layer, layer.instances()[0], function(data) {
             var times = new Array;
             for (var t in data) {
