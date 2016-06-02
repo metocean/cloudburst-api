@@ -44,7 +44,6 @@ L.CloudburstTileLayer = L.TileLayer.extend
     @_level
 
   getTimes: ->
-    # Time-indexes (tindexes)
     @_times
 
   setTime: (time, noRedraw) ->

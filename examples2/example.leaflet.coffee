@@ -22,6 +22,8 @@ global_time = undefined
 
 debug = off
 
+tileHost = "http://localhost:6060"
+
 make_map = (mapdiv) ->
   # Create a leaflet map with a list of tilelayers
   mapdiv = if mapdiv? then mapdiv else 'map'
@@ -73,18 +75,38 @@ appendElements = (container_id, element, content, title, className, role, id) ->
   document.getElementById(container_id).appendChild(el)
   return
 
-get_opacity_slider = (slider_id)->
+get_opacity_slider = (slider_id) ->
   input = document.createElement('div')
   input.setAttribute('id', slider_id)
   return input.outerHTML
 
-do_appendElements = (tileLayer, refresh_layers, refresh_instances) ->
+make_opacity_slider = (layers, slider_id, value, step) ->
+  console.log layers[parseInt(slider_id.split("-")[-1..][0])][0].options.opacity
+  $("##{slider_id}")
+  .slider
+    min: 0
+    max: 100
+    value: if value? then value else layers[parseInt(slider_id.split("-")[-1..][0])][0].options.opacity*100
+    suffix: "%"
+    step: if step? then step else 10
+    stop: (event, ui) ->
+      slider_id = parseInt(this.id.split("-")[-1..][0])
+      layers[slider_id][0].setOpacity(ui.value/100)
+      return
+  .slider "float",
+    pips: true
+  return
+
+do_appendLayers = (layersJson, refresh_layers) ->
   if (!refresh_layers? or refresh_layers)
     removeOptions('layers')
-    appendElements('layers', 'option', lyr[1].meta.name, lyr[0]) for lyr in tileLayer.getLayers(yes)
+    appendElements('layers', 'option', lyr.meta.name, lyr.id) for lyr in layersJson
+  return
+
+do_appendInstances = (layerJson, refresh_instances) ->
   if (!refresh_instances? or refresh_instances)
     removeOptions('instances')
-    appendElements('instances', 'option', instance) for instance in tileLayer.getInstances()
+    appendElements('instances', 'option', instance.id) for instance in layerJson.instances
   return
 
 get_button = (id, icon_classes, button_classes) ->
@@ -97,25 +119,163 @@ get_button = (id, icon_classes, button_classes) ->
   btn.setAttribute('id', id)
   return btn.outerHTML
 
-on_modal_layer_change = (tileLayer, selected_list) ->
-  tileLayer.setLayer($('option:selected', selected_list).attr('title'))
-  do_appendElements(tileLayer, no, yes) # update instances for this layer
-  document.getElementById("modal-layer-info").innerHTML = tileLayer.getLayerDescription()
-  return
+create_layer_table = (map, layers, table_id) ->
+  table_id = if table_id? then table_id else "layer-table"
+  # Clear table
+  document.getElementById(table_id).innerHTML = null
+  for l, rowi in layers.reverse()
+    lyr = l[0] # L.cloudburstTileLayer
+    layer = l[1]
+    instance = l[2]
 
-prepare_modal_dialogue = (tileLayer, modal_div) ->
-  # TODO: remove ability to add same layer/instance twice?
+    row = document.getElementById(table_id).insertRow(-1)
+    rowi = document.getElementById(table_id).rows.length - 1
+    layer_utils = row.insertCell(0)
+    remove_button = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
+    zoom_to_layer_button = get_button("zoom-layer-#{rowi}", ['glyphicon', 'glyphicon-screenshot'], ['btn', 'btn-default', 'btn-xs', 'zoom-to-layer'])
+    layer_utils.innerHTML = remove_button + zoom_to_layer_button
+    $(layer_utils).addClass 'col-md-1'
+
+    layer_name = row.insertCell(1)
+    layer_name.innerHTML = "<strong>#{layer.meta.name}</strong><br>#{instance.id}"
+    $(layer_name).addClass 'col-md-3'
+
+    opacity_slider = row.insertCell(2)
+    opacity_slider.innerHTML = get_opacity_slider("opacity-slider-#{rowi}")
+    $(opacity_slider).addClass 'col-md-2'
+    make_opacity_slider(layers, "opacity-slider-#{rowi}")
+
+    dt = row.insertCell(3)
+    if lyr.hasTimes
+      dt.innerHTML = moment(lyr.getTime(), moment.ISO_8601).format('llll')
+    else
+      dt.innerHTML = "<span>N/A<span>"
+    $(dt).addClass 'col-md-2'
+
+    depth = row.insertCell(4)
+    $(depth).addClass 'col-md-1'
+    if lyr.hasLevels
+      increase = get_button("increase-depth-#{rowi}", ['glyphicon', 'glyphicon-circle-arrow-up'], ['btn', 'btn-md', 'decrease-depth', "decrease-depth-#{rowi}", 'depth'])
+      decrease = get_button("decrease-depth-#{rowi}", ['glyphicon', 'glyphicon-circle-arrow-down'], ['btn', 'btn-md', 'increase-depth', "increase-depth-#{rowi}", 'depth'])
+      depth.innerHTML = increase + decrease
+      $(".increase-depth-#{rowi}").on 'click', ->
+        btn_row = parseInt(this.id.split("-")[-1..][0])
+        layers[btn_row].deeper(no)
+      $(".decrease-depth-#{rowi}").on 'click', ->
+        btn_row = parseInt(this.id.split("-")[-1..][0])
+        layers[btn_row].higher(no)
+    else
+      depth.innerHTML = "<span>No depth</span>"
+
+    legend = row.insertCell(5)
+    legendURL = instance.resources.legend
+    .replace('<size>', 'small')
+    .replace('<orientation>', 'horizontal')
+    legend.innerHTML = "<img src=\"#{tileHost}#{legendURL}\" alt='' />"
+    $(legend).addClass 'col-md-3'
+
+
+  $(".remove-layer").click ->
+    layers.splice(parseInt(this.id.split("-")[-1..][0]), 1)
+    activate_layers(map, layers)
+  $(".zoom-to-layer").click ->
+    zoom_to_layer(map, layers[this.id.split("-")[-1..][0]][0])
+  $("#layer-table-parent tbody").sortable
+    start: (event, ui) ->
+      ui.item.startPos = ui.item.index()
+    update: (event, ui) ->
+      layers = move_in_array(layers, ui.item.startPos, ui.item.index())
+      activate_layers(map, layers)
+  .disableSelection()
+
+make_global_slider = (map, layers, values, off_on, slider_class, slider_id) ->
+  toggle_el_property(slider_id, 'hidden', off_on)
+  if values? and values.length > 0
+    moments = (moment.unix(t) for t in values)
+    labels = (t.fromNow() for t in moments)
+    times = (t.unix() for t in moments)
+    now = (new Date).getTime()/1000
+    closest_to_now = closest(times, now)
+    slider_class = if slider_class? then slider_class else 'slider'
+    slider_id = if slider_id? then slider_id else 'global-slider'
+    $(".#{slider_class}")
+    .slider
+      min: Math.min.apply(Math, times)
+      max: Math.max.apply(Math, times)
+      step: Math.min.apply(Math, diff(times))
+      value: closest_to_now
+      change: (event, ui) ->
+        # When user picks a new time, update the layers on map
+        global_time = ui.value # Global, used when new layers are added
+        for lyr in layers
+          lyr_moments = (moment(t, moment.ISO_8601).unix() for t in lyr[0].getTimes())
+          selected_moment_str = closest(lyr_moments, global_time)
+          lyr[0].setTime(lyr[0].getTimes()[lyr_moments.indexOf(selected_moment_str)])
+        activate_layers(map, layers, false)
+    .slider "pips",
+      first: 'label'
+      last: 'label'
+      rest: 'pip'
+      labels: labels
+    .slider "float",
+      labels: labels
+      handle: true
+      pips: true
+    # $pips = $(".#{slider_class}").find(".ui-slider-pip") # Hold all the pips for filtering
+    # $pips.filter(".ui-slider-pip-#{t}").show() for t in times
+
+on_modal_layer_change = (json, selected_list) ->
+  layerID = $('option:selected', selected_list).attr('title')
+  cloudburst.loadLayer(layerID, do_appendInstances).then( (layer) ->
+    document.getElementById("modal-layer-info").innerHTML = layer.meta.description
+    return
+  )
+
+on_modal_layer_confirm = (map, cb) ->
+  layerID = $('option:selected', $('#layers')).attr('title')
+  instanceID = $('option:selected', $('#instances')).val()
+  cloudburst.loadLayer(layerID, (layer) ->
+    cloudburst.loadInstance(layerID, instanceID, (instance) ->
+      tileTemplate = [tileHost, instance.resources.tile].join('')
+      cloudburst.loadTimes(layerID, instanceID, (times) ->
+        selected_lyr = new L.cloudburstTileLayer(tileTemplate, times, undefined, layer.bounds)
+        if cb?
+          return cb([selected_lyr, layer, instance])
+        return [selected_lyr, layer, instance]
+      )
+    )
+  )
+
+prepare_modal_dialogue = (json, modal_div) ->
   # Controlling the drop-down menus for modal layer control
-  do_appendElements(tileLayer, yes, yes)
+  do_appendLayers(json, yes)
+  cloudburst.loadLayer(json[0].id, do_appendInstances)
   modal_div = if modal_div? then modal_div else "modal-layer-info"
-  document.getElementById(modal_div).innerHTML = tileLayer.getLayerDescription()
+  document.getElementById(modal_div).innerHTML = json[0].meta.description
+  return
 
 zoom_to_layer = (map, tileLayer) ->
   map.fitBounds tileLayer.getBounds()
 
-get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
+activate_layers = (map, layers, refresh_slider) ->
+  refresh_slider = if refresh_slider? then refresh_slider else true
+  map.eachLayer (lyr) ->
+    map.removeLayer(lyr) if !(lyr._url in basemaps_urls)
+  # Displays active layers on the map
+  lyr[0].addTo(map).bringToFront() for lyr in layers.reverse()
+  t_set = new Set()
+  for lyr in layers
+    times = lyr[0].getTimes()
+    if times?
+      t_set.add(moment(t, moment.ISO_8601).unix()) for t in times
+  if refresh_slider
+    make_global_slider(map, layers, Array.from(t_set), off)
+  # Adds all active layers to the table of layers
+  create_layer_table(map, layers)
+
+get_cloudburst_tileLayer = (urlTemplate, times, levels, bounds, options) ->
   # Create a CloudburstTileLayer
-  cloudburstTileLayer = L.cloudburstTileLayer host, json,
+  cloudburstTileLayer = L.cloudburstTileLayer urlTemplate, times, levels, bounds,
     maxZoom: 21
     maxNativeZoom: 21
     reuseTiles: no
@@ -126,187 +286,43 @@ get_cloudburst_tileLayer = (host, json, opacity, zIndex) ->
 
   return cloudburstTileLayer
 
-sample_layer_control = (json, host) ->
-  # For this example, we display the first layer, and then add dropdown menus
-  # populated from the configuration, that allow the user to change the map
-  # display, as well as a time slider
-
-  cloudburstTileLayer = get_cloudburst_tileLayer(host, json)
-
-  active_layers = []
+layer_control = (json, host) ->
 
   # Start the map with some simple contextual tile layers
   map = make_map()
 
-  make_global_slider = (off_on, values, slider_class, slider_id) ->
-    toggle_el_property(slider_id, 'hidden', off_on)
-    if values? and values.length > 0
-      moments = (moment.unix(t) for t in values)
-      labels = (t.fromNow() for t in moments)
-      times = (t.unix() for t in moments)
-      now = (new Date).getTime()/1000
-      closest_to_now = closest(times, now)
-      slider_class = if slider_class? then slider_class else 'slider'
-      slider_id = if slider_id? then slider_id else 'global-slider'
-      $(".#{slider_class}")
-      .slider
-        min: Math.min.apply(Math, times)
-        max: Math.max.apply(Math, times)
-        step: Math.min.apply(Math, diff(times))
-        value: closest_to_now
-        change: (event, ui) ->
-          # When user picks a new time, update the layers on map
-          global_time = ui.value # Global, used when new layers are added
-          for lyr in active_layers
-            lyr_moments = (moment(t[1], moment.ISO_8601).unix() for t in lyr.getTindexes(yes))
-            selected_moment_str = closest(lyr_moments, global_time)
-            lyr.setTindex(lyr_moments.indexOf(selected_moment_str))
-          activate_layers(false)
-      .slider "pips",
-        first: 'label'
-        last: 'label'
-        rest: 'pip'
-        labels: labels
-      .slider "float",
-        labels: labels
-        handle: true
-        pips: true
-      # $pips = $(".#{slider_class}").find(".ui-slider-pip") # Hold all the pips for filtering
-      # $pips.filter(".ui-slider-pip-#{t}").show() for t in times
+  # Will hold layers that are on map
+  active_layers = []
 
-  make_opacity_slider = (slider_id, lyr, value, step) ->
-    $("##{slider_id}")
-    .slider
-      min: 0
-      max: 100
-      value: if value? then value else lyr.options.opacity * 100
-      suffix: "%"
-      step: if step? then step else 10
-      stop: (event, ui) ->
-        slider_id = parseInt(this.id.split("-")[-1..][0])
-        active_layers[slider_id].setOpacity(ui.value/100)
-        return
-    .slider "float",
-      pips: true
-    return
-
-  create_layer_table = (table_id) ->
-    table_id = if table_id? then table_id else "layer-table"
-    # Clear table
-    document.getElementById(table_id).innerHTML = null
-    for lyr, rowi in active_layers.reverse()
-      row = document.getElementById(table_id).insertRow(-1)
-      rowi = document.getElementById(table_id).rows.length - 1
-      layer_utils = row.insertCell(0)
-      remove_button = get_button("remove-layer-#{rowi}", ['glyphicon', 'glyphicon-remove'], ['btn', 'btn-warning', 'btn-xs', 'remove-layer'])
-      zoom_to_layer_button = get_button("zoom-layer-#{rowi}", ['glyphicon', 'glyphicon-screenshot'], ['btn', 'btn-default', 'btn-xs', 'zoom-to-layer'])
-      layer_utils.innerHTML = remove_button + zoom_to_layer_button
-      $(layer_utils).addClass 'col-md-1'
-
-      layer_name = row.insertCell(1)
-      layer_name.innerHTML = "<strong>#{lyr.getLayerName()}</strong><br>#{lyr.getInstance()}"
-      $(layer_name).addClass 'col-md-3'
-
-      opacity_slider = row.insertCell(2)
-      opacity_slider.innerHTML = get_opacity_slider("opacity-slider-#{rowi}")
-      $(opacity_slider).addClass 'col-md-2'
-
-      dt = row.insertCell(3)
-      _dt = lyr.getTindex(yes)
-      if _dt?
-        dt.innerHTML = moment(_dt, moment.ISO_8601).format('llll')
-      else
-        dt.innerHTML = "<span>N/A<span>"
-      $(dt).addClass 'col-md-2'
-
-      depth = row.insertCell(4)
-      $(depth).addClass 'col-md-1'
-      if lyr.getLevels().length > 1
-        increase = get_button("increase-depth-#{rowi}", ['glyphicon', 'glyphicon-circle-arrow-up'], ['btn', 'btn-md', 'decrease-depth', "decrease-depth-#{rowi}", 'depth'])
-        decrease = get_button("decrease-depth-#{rowi}", ['glyphicon', 'glyphicon-circle-arrow-down'], ['btn', 'btn-md', 'increase-depth', "increase-depth-#{rowi}", 'depth'])
-        depth.innerHTML = increase + decrease
-        $(".increase-depth-#{rowi}").on 'click', ->
-          btn_row = parseInt(this.id.split("-")[-1..][0])
-          active_layers[btn_row].deeper(no)
-        $(".decrease-depth-#{rowi}").on 'click', ->
-          btn_row = parseInt(this.id.split("-")[-1..][0])
-          active_layers[btn_row].higher(no)
-      else
-        depth.innerHTML = "<span>No depth</span>"
-
-      legendsrc = lyr.getLayerLegendUrl('small', 'horizontal')
-      legend = row.insertCell(5)
-      legend.innerHTML = "<img src=\"#{legendsrc}\" alt='' />"
-      $(legend).addClass 'col-md-3'
-
-      make_opacity_slider("opacity-slider-#{rowi}", lyr, lyr.options.opacity * 100)
-    $(".remove-layer").click ->
-      active_layers.splice(parseInt(this.id.split("-")[-1..][0]), 1)
-      activate_layers()
-    $(".zoom-to-layer").click ->
-      zoom_to_layer(map, active_layers[this.id.split("-")[-1..][0]])
-    $("#layer-table-parent tbody").sortable
-      start: (event, ui) ->
-        ui.item.startPos = ui.item.index()
-      update: (event, ui) ->
-        active_layers = move_in_array(active_layers, ui.item.startPos, ui.item.index())
-        activate_layers()
-    .disableSelection()
-    return
-
-  activate_layers = (refresh_slider) ->
-    refresh_slider = if refresh_slider? then refresh_slider else true
-    map.eachLayer (lyr) ->
-      map.removeLayer(lyr) if !(lyr._url in basemaps_urls)
-    # Displays active layers on the map
-    for lyr in active_layers.reverse()
-      lyr.addTo(map) for lyr in active_layers.reverse()
-    # Adds indexes to time slider # TODO may not be time
-    t_set = new Set()
-    z = basemaps.length + 1
-    for lyr in active_layers
-      lyr.setZIndex(if !(lyr._url in basemaps_urls) then z + 1 else 0)
-      z += 1
-      _tindexes = lyr.getTindexes(yes)
-      if _tindexes[0][1]?
-        t_set.add(moment(t[1], moment.ISO_8601).unix()) for t in _tindexes
-    if refresh_slider
-      make_global_slider(off, Array.from(t_set))
-    # Adds all active layers to the table of layers
-    create_layer_table()
-
-  on_modal_layer_confirm = ->
-    selected_lyr = get_cloudburst_tileLayer(host, json)
-    selected_lyr.setLayer $('option:selected', $('#layers'))[0].title
-    selected_lyr.setInstance $('option:selected', $('#instances')).val() #$('option:selected', $('#instances')).attr('title')
-
-    if global_time?
-      _lyr_t = selected_lyr.getTindexes(yes)
-      if _lyr_t[0][1]?
-        lyr_moments = (moment(t[1], moment.ISO_8601).unix() for t in _lyr_t)
-        selected_moment_str = closest(lyr_moments, global_time)
-        selected_lyr.setTindex(lyr_moments.indexOf(selected_moment_str))
-      else
-        selected_lyr.setTindex(0)
-    active_layers.push(selected_lyr)
-    zoom_to_layer(map, active_layers[active_layers.length - 1])
-    activate_layers()
-
-  # Modal add layer dialogue
-  prepare_modal_dialogue(cloudburstTileLayer)
+  # Prepare a dialogue for selecting a tilelayer
+  prepare_modal_dialogue(json)
   $('#layers').change ->
     # When the selected layer changes
-    on_modal_layer_change(cloudburstTileLayer, this)
+    on_modal_layer_change(json, this)
   $('#modal-confirm-add').click ->
     # When user confirms modal add layer
-    on_modal_layer_confirm()
+    on_modal_layer_confirm(map, (l) ->
+      active_layers.push(l)
+      activate_layers(map, active_layers)
+      zoom_to_layer(map, l[0])
+    )
 
-  # Prepare global slider
-  make_global_slider(on)
+
+
+
+
+
+
+
+
+  # # Prepare global slider
+  # make_global_slider(on)
 
 # New Cloudburst, given a compatible host
 cloudburst = new Cloudburst()
-# Define a callback function, called when the config is ready
-callback = sample_layer_control
-# Load the configuration file, and launch your own callback
-cloudburst.loadConfiguration(callback)
+# Load the configuration file, with callback
+cloudburst.loadConfiguration(layer_control)
+
+
+# cloudburst.loadLayer('ncep_hs')
+# cloudburst.loadInstance(layerID, instanceID, callback)

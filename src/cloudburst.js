@@ -1,31 +1,62 @@
-(function() {
-  var Cloudburst, HOST;
+var Cloudburst, HOST, ajax;
 
-  HOST = 'http://tapa01.unisys.metocean.co.nz';
+HOST = 'http://localhost:9090';
 
-  Cloudburst = (function() {
-    function Cloudburst() {
-      this.url = HOST + "/layer";
+ajax = function(uri, method, data) {
+  var request;
+  console.log(method + ' request to ' + uri);
+  request = {
+    url: uri,
+    type: method,
+    contentType: "application/json",
+    accepts: "application/json",
+    cache: false,
+    dataType: 'json',
+    data: JSON.stringify(data),
+    error: function(jqXHR) {
+      return console.log("ajax error " + jqXHR.status);
     }
+  };
+  return $.ajax(request);
+};
 
-    Cloudburst.prototype.loadConfiguration = function(cb) {
-      return $.ajax({
-        url: this.url,
-        type: 'GET',
-        jsonpCallback: 'read_layers_callback',
-        dataType: 'jsonp',
-        success: (function(_this) {
-          return function(data, status, response) {
-            if ((cb != null) && status === 'success') {
-              return cb(data, HOST);
-            }
-          };
-        })(this)
-      });
-    };
+Cloudburst = (function() {
+  function Cloudburst() {
+    this.layersURI = "http://localhost:9090/wxtiles/layer";
+  }
 
-    return Cloudburst;
+  Cloudburst.prototype.loadConfiguration = function(cb) {
+    return ajax(this.layersURI, 'GET').done(function(layers) {
+      if (cb != null) {
+        return cb(layers);
+      }
+    });
+  };
 
-  })();
+  Cloudburst.prototype.loadLayer = function(layerID, cb) {
+    return ajax([this.layersURI, layerID].join('/'), 'GET').done(function(layer) {
+      if (cb != null) {
+        return cb(layer);
+      }
+    });
+  };
 
-}).call(this);
+  Cloudburst.prototype.loadInstance = function(layerID, instanceID, cb) {
+    return ajax([this.layersURI, layerID, instanceID].join('/'), 'GET').done(function(instance) {
+      if (cb != null) {
+        return cb(instance);
+      }
+    });
+  };
+
+  Cloudburst.prototype.loadTimes = function(layerID, instanceID, cb) {
+    return ajax([this.layersURI, layerID, instanceID, 'times/'].join('/'), 'GET').done(function(times) {
+      if (cb != null) {
+        return cb(times);
+      }
+    });
+  };
+
+  return Cloudburst;
+
+})();
