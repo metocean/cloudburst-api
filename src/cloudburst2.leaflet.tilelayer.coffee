@@ -6,7 +6,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
     zoomOffset: 0
     detectRetina: true
 
-  initialize: (urlTemplate, times, levels, options) ->
+  initialize: (urlTemplate, times, levels, bounds, options) ->
     @_times = if times? then times else null
     @_levels = if levels? then levels else null
 
@@ -16,9 +16,19 @@ L.CloudburstTileLayer = L.TileLayer.extend
     @setTime(if @_times? then @_times[0] else 0)
     @setLevel(if @_levels? then @_levels[0] else 0)
 
-    L.TileLayer.prototype.initialize.call(@, urlTemplate, options)
+    @bounds = if bounds? then bounds else null
 
-  getLevels: () ->
+    L.TileLayer.prototype.initialize.call(@, urlTemplate, options, bounds, times, levels)
+
+  getBounds: ->
+    # Returns bounds as L.latLngBounds
+    if @bounds?
+      return new L.latLngBounds(
+        L.latLng(@bounds['south'], @bounds['west']),
+        L.latLng(@bounds['north'], @bounds['east'])
+      )
+
+  getLevels: ->
     # Vertical dimension
     @_levels
 
@@ -33,7 +43,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
   getLevel: ->
     @_level
 
-  getTimes: () ->
+  getTimes: ->
     # Time-indexes (tindexes)
     @_times
 
@@ -46,7 +56,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
       @redraw() if !noRedraw? or !noRedraw
     @
 
-  getTime: () ->
+  getTime: ->
     @_time
 
   back: (noRedraw) ->
@@ -83,8 +93,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
   getTileUrl: (coords) ->
     L.TileLayer.prototype.getTileUrl
       .call(@, coords)
-      .replace('<time>', 0) # @getTimes.indexOf(@getTime())) # TODO will need to change when API fixed
-      .replace('<level>', 0) # @getLevels.indexOf(getLevel())) # TODO will need to change when API fixed
+      .replace('<time>', if !@hasTimes then 0 else @getTimes().indexOf(@getTime()))
+      .replace('<level>', if !@hasLevels then 0 else @getLevels().indexOf(@getLevel()))
 
-L.cloudburstTileLayer = (urlTemplate, options) ->
-  new L.CloudburstTileLayer(urlTemplate, options)
+L.cloudburstTileLayer = (urlTemplate, times, levels, bounds, options) ->
+  new L.CloudburstTileLayer(urlTemplate, times, levels, bounds, options)

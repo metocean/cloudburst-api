@@ -14,14 +14,12 @@
       tms: true,
       zoomOffset: 0
     };
-    function get_cloudburst_tileLayer(templateUrl, options) {
-      return L.cloudburstTileLayer(templateUrl, options)
-    }
 
     function LayersViewModel() {
       var self = this;
-      self.layersURI = 'http://localhost:6060/layer';
-      self.tilesURI = 'http://localhost:6060/tile'
+      self.tileHost = 'http://localhost:6060';
+      self.layersURI = 'http://localhost:9090/wxtiles/layer';
+      self.legendURI = 'http://localhost:6060/wxtiles/legend/small/horizontal/'; // TODO get from layer > instance > resources.legend
       // self.layersURI = 'http://tapa01.unisys.metocean.co.nz/layer';
       self.layers = ko.observableArray();
 
@@ -29,11 +27,10 @@
         var request = {
           url: uri,
           type: method,
-          jsonpCallback: 'read_layers_callback',
           contentType: "application/json",
           accepts: "application/json",
           cache: false,
-          dataType: 'jsonp',
+          dataType: 'json',
           data: JSON.stringify(data),
           error: function(jqXHR) {
             console.log("ajax error " + jqXHR.status);
@@ -42,15 +39,20 @@
         return $.ajax(request);
       }
 
-      self.ajax(self.layersURI, 'GET').done(function(data) {
-        var layers = Object.keys(data);
+      self.ajax(self.layersURI + '/', 'GET').done(function(layers) {
         for (var i = 0; i < layers.length; i++) {
+          var instances = [];
+          for (j = 0, len = layers[i].instances.length; j < len; j++) {
+            instances.push(layers[i].instances[j].id);
+          }
           self.layers.push({
-            layerID: ko.observable(layers[i]),
-            instances: ko.observableArray(Object.keys(data[layers[i]].dataset)),
-            title: ko.observable(data[layers[i]].meta.name),
-            description: ko.observable(data[layers[i]].meta.description),
-            units: ko.observable(data[layers[i]].meta.unit_system)
+            layerID: ko.observable(layers[i].id),
+            bounds: ko.observable(layers[i].bounds),
+            instances: ko.observableArray(instances),
+            title: ko.observable(layers[i].meta.name),
+            description: ko.observable(layers[i].meta.description),
+            units: ko.observable(layers[i].meta.unit_system),
+            legend: ko.observable(self.legendURI + '/' + layers[i].id + '/' + instances[0] + '.png')
           });
         }
       });
@@ -63,18 +65,20 @@
       }
 
       self.getInstances = function(layer) {
+        console.log(layer.instances());
         return layer.instances();
       }
 
       self.getInstance = function(layer, instanceID, callback) {
-        var path = self.layersURI + '/' + layer.layerID() + '/' + instanceID;
+        var path = self.layersURI + '/' + layer.layerID() + '/' + instanceID + '/';
+        console.log(path);
         self.ajax(path, 'GET').done(function(data) {
           return callback(data);
         });
       }
 
       self.getTimes = function(layer, instanceID, callback) {
-        var path = self.layersURI + '/' + layer.layerID() + '/' + instanceID + '/times';
+        var path = self.layersURI + '/' + layer.layerID() + '/' + instanceID + '/times/';
         self.ajax(path, 'GET').done(function(data) {
           return callback(data);
         })
@@ -83,27 +87,14 @@
       // self.getLevels = function(layer, instanceID, callback)
 
       self.getSampleTile = function(layer) {
-        var instance = self.getInstance(layer, layer.instances()[0], function(data) {
-          var templateURL = self.tilesURI + data.links; // TODO this will change to an object, where we'd want data.resources.tile, and these substitutions won't be required
-          self.getTimes(layer, layer.instances()[0], function(data) {
-            var times = new Array;
-            for (var t in data) {
-              times.push(data[t]);
-            }
+        self.getInstance(layer, layer.instances()[0], function(data) {
+          var templateURL = self.tileHost + data.resources.tile;
+          self.getTimes(layer, layer.instances()[0], function(times) {
             var levels;
-            var cbtl = get_cloudburst_tileLayer(templateURL, times, levels, cloudburstOptions);
-            // var ntl = templateURL.replace('<time>', 0)
-            // L.tileLayer(ntl, {
-            //   tms: true,
-            //   minZoom: 0,
-            //   maxZoom: 21,
-            //   zoomOffset: 0,
-            //   detectRetina: true
-            // }).addTo(map);
-
-            // console.log(cbtl);
-            // console.log(templateURL);
-            cbtl.addTo(map);
+            var bounds = layer.bounds();
+            var cbTileLayer = new L.cloudburstTileLayer(templateURL, times, levels, bounds, cloudburstOptions);
+            cbTileLayer.addTo(map);
+            map.fitBounds(cbTileLayer.getBounds());
           });
         });
       }
