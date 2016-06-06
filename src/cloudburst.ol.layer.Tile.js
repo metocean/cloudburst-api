@@ -1,21 +1,19 @@
-var CloudburstOL3, logging,
+var CloudburstOL3,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-logging = false;
-
 CloudburstOL3 = (function() {
-  function CloudburstOL3(config, host) {
+  function CloudburstOL3(urlTemplate, times, levels, bounds, host) {
     this.setOL3LayerTile = bind(this.setOL3LayerTile, this);
-    this._host = host;
-    this._config = config;
-    this._layers = this.getLayers();
     this._htmlattr = '&copy;<a href="http://www.metocean.co.nz/">MetOcean Solutions Ltd</a>';
-    this.setLayer(this._layers[0], false);
-    this.setInstance(this.getInstances()[0], false);
-    this.setTindex(this.getTindexes()[0], false);
-    this.setLevel(this.getLevels()[0], false);
-    this.setRenderer('mpl', false);
+    this._times = times != null ? times : null;
+    this._levels = levels != null ? levels : null;
+    this.hasTimes = this._times ? true : false;
+    this.hasLevels = this._levels ? true : false;
+    this.setTime(this._times != null ? this._times[0] : 0);
+    this.setLevel(this._levels != null ? this._levels[0] : 0);
+    this.bounds = bounds != null ? bounds : null;
+    this.urlTemplate = urlTemplate;
     this.tileLayer = void 0;
     this;
   }
@@ -32,14 +30,6 @@ CloudburstOL3 = (function() {
     if (this.tileLayer != null) {
       return this.tileLayer.getSource().changed();
     }
-  };
-
-  CloudburstOL3.prototype.tileUrl = function(tileCoord, pixelRatio, projection) {
-    var x, y, z;
-    z = tileCoord[0];
-    x = tileCoord[1];
-    y = tileCoord[2] + (1 << z);
-    return this._host + "/tile/" + this._renderer + "/" + this._layer + "/" + this._instance + "/" + this._tindex + "/" + this._level + "/" + z + "/" + x + "/" + y + ".png";
   };
 
   CloudburstOL3.prototype.setOL3LayerTile = function(options) {
@@ -67,156 +57,25 @@ CloudburstOL3 = (function() {
     return this.tileLayer;
   };
 
-  CloudburstOL3.prototype.getConfig = function() {
-    return this._config;
-  };
-
-  CloudburstOL3.prototype.getLayers = function(asObj) {
-    var lyr, lyrs;
-    if (this._config != null) {
-      if ((asObj == null) || !asObj) {
-        lyrs = Object.keys(this._config);
-      } else {
-        lyrs = (function() {
-          var j, len, ref, results;
-          ref = Object.keys(this._config);
-          results = [];
-          for (j = 0, len = ref.length; j < len; j++) {
-            lyr = ref[j];
-            results.push([lyr, this._config[lyr]]);
-          }
-          return results;
-        }).call(this);
-      }
-      return lyrs;
-    }
-  };
-
-  CloudburstOL3.prototype.setLayer = function(layer, noRedraw) {
-    if ((this._layers != null) && indexOf.call(this._layers, layer) >= 0) {
-      this._layer = layer;
-      if ((noRedraw == null) || !noRedraw) {
-        this.redraw();
-      }
-      if (logging === true) {
-        console.log("Layer set to: " + this._layer);
-      }
-    }
-    return this;
-  };
-
-  CloudburstOL3.prototype.getLayer = function() {
-    return this._layer;
-  };
-
-  CloudburstOL3.prototype.getLayerLegendUrl = function(size, orientation) {
-    var layerurl;
-    if ((size == null) || !size) {
-      size = "small";
-    }
-    if ((orientation == null) || !orientation) {
-      orientation = "horiztonal";
-    }
-    layerurl = this._host + "/legend/" + size + "/" + orientation + "/" + (this.getLayer()) + "/" + (this.getInstance()) + ".png";
-    return layerurl;
-  };
-
   CloudburstOL3.prototype.getLayerBounds = function() {
-    var bounds;
-    if ((this._layer != null) && (this._instance != null)) {
-      bounds = this._config[this._layer]['dataset'][this._instance]['bounds'];
-      return ol.proj.transformExtent([bounds['west'], bounds['south'], bounds['east'], bounds['north']], 'EPSG:4326', 'EPSG:3857');
+    if (this.bounds != null) {
+      return ol.proj.transformExtent([this.bounds['west'], this.bounds['south'], this.bounds['east'], this.bounds['north']], 'EPSG:4326', 'EPSG:3857');
     }
   };
 
-  CloudburstOL3.prototype.getLayerMetadata = function() {
-    if (this._layer != null) {
-      return this._config[this._layer].meta;
-    }
-  };
-
-  CloudburstOL3.prototype.getLayerDescription = function() {
-    if (this._layer != null) {
-      return this.getLayerMetadata().description;
-    }
-  };
-
-  CloudburstOL3.prototype.getLayerName = function() {
-    if (this._layer != null) {
-      return this.getLayerMetadata().name;
-    }
-  };
-
-  CloudburstOL3.prototype.getLayerUnits = function() {
-    if (this._layer != null) {
-      return this.getLayerMetadata().units;
-    }
-  };
-
-  CloudburstOL3.prototype.getLayerPlotDefinitions = function() {
-    if (this._layer) {
-      return this._config[this._layer].plot_defs;
-    }
-  };
-
-  CloudburstOL3.prototype.getInstances = function() {
-    if (this._layer != null) {
-      return Object.keys(this._config[this._layer]['dataset']);
-    }
-  };
-
-  CloudburstOL3.prototype.setInstance = function(instance, noRedraw) {
-    if (instance != null) {
-      this._instance = instance;
-      if ((noRedraw == null) || !noRedraw) {
-        this.redraw();
-      }
-      if (logging === true) {
-        console.log("Instance set to: " + this._instance);
-      }
-    }
-    return this;
-  };
-
-  CloudburstOL3.prototype.getInstance = function() {
-    return this._instance;
-  };
-
-  CloudburstOL3.prototype.getLevels = function(asObj) {
-    var i, levels;
-    if ((this._instance != null) && (this._layer != null) && indexOf.call(Object.keys(this._config[this._layer]['dataset'][this._instance]), 'levels') >= 0) {
-      levels = Object.keys(this._config[this._layer]['dataset'][this._instance]['levels']);
-      if ((asObj != null) && asObj) {
-        levels = (function() {
-          var j, len, results;
-          results = [];
-          for (j = 0, len = levels.length; j < len; j++) {
-            i = levels[j];
-            results.push([i, this._config[this._layer]['dataset'][this._instance]['levels'][i]]);
-          }
-          return results;
-        }).call(this);
-      }
-      return levels;
-    }
-    if (!asObj) {
-      return ["0"];
-    } else {
-      return {
-        "0": void 0
-      };
-    }
+  CloudburstOL3.prototype.getLevels = function() {
+    return this._levels;
   };
 
   CloudburstOL3.prototype.setLevel = function(level, noRedraw) {
     var ref;
+    if (!this.hasLevels) {
+      return this;
+    }
     if (ref = level.toString(), indexOf.call(this.getLevels(), ref) >= 0) {
       this._level = level.toString();
       if ((noRedraw == null) || !noRedraw) {
         this.redraw();
-      }
-      if (logging === true) {
-        console.log("Level set to: " + this._level);
       }
     }
     return this;
@@ -226,124 +85,81 @@ CloudburstOL3 = (function() {
     return this._level;
   };
 
-  CloudburstOL3.prototype.getTindexes = function(asObj) {
-    var i, tindexes;
-    if ((this._instance != null) && (this._layer != null)) {
-      tindexes = Object.keys(this._config[this._layer]['dataset'][this._instance].times);
-      if ((asObj != null) && asObj) {
-        tindexes = (function() {
-          var j, len, results;
-          results = [];
-          for (j = 0, len = tindexes.length; j < len; j++) {
-            i = tindexes[j];
-            results.push([i, this._config[this._layer]['dataset'][this._instance].times[i]]);
-          }
-          return results;
-        }).call(this);
-      }
-    }
-    return tindexes;
+  CloudburstOL3.prototype.getTimes = function() {
+    return this._times;
   };
 
-  CloudburstOL3.prototype.setTindex = function(tindex, noRedraw) {
-    var ref;
-    if (ref = tindex.toString(), indexOf.call(this.getTindexes(), ref) >= 0) {
-      this._tindex = tindex.toString();
+  CloudburstOL3.prototype.setTime = function(time, noRedraw) {
+    if (!this.hasTimes) {
+      this._time = 0;
+      return this;
+    } else if (indexOf.call(this.getTimes(), time) >= 0) {
+      this._time = time.toString();
       if ((noRedraw == null) || !noRedraw) {
         this.redraw();
       }
-      if (logging === true) {
-        console.log("Tindex set to: " + this._tindex);
-      }
     }
     return this;
   };
 
-  CloudburstOL3.prototype.getTindex = function(as_time_string) {
-    if (as_time_string == null) {
-      return this._tindex;
-    } else {
-      return this.getTindexes(true)[this._tindex][1];
-    }
-  };
-
-  CloudburstOL3.prototype.getRenderer = function() {
-    return this._renderer;
-  };
-
-  CloudburstOL3.prototype.setRenderer = function(renderer, noRedraw) {
-    this._renderer = renderer;
-    if ((noRedraw == null) || !noRedraw) {
-      this.redraw();
-    }
-    return this;
+  CloudburstOL3.prototype.getTime = function(as_time_string) {
+    return this._time;
   };
 
   CloudburstOL3.prototype.back = function(noRedraw) {
-    if (this._tindex != null) {
-      if (parseInt(this._tindex) > 0) {
-        return this.setTindex(Math.max(parseInt(this._tindex) - 1, 0), noRedraw);
-      }
+    var t, times;
+    if (!this.hasTimes) {
+      return;
+    }
+    t = this.getTime();
+    times = this.getTimes();
+    if ((t != null) && times.indexOf(t) > 0) {
+      return this.setTime(times[times.indexOf(t) - 1], noRedraw);
     }
   };
 
   CloudburstOL3.prototype.forward = function(noRedraw) {
-    if (this._tindex != null) {
-      if (parseInt(this._tindex) < this.getTindexes().length - 1) {
-        return this.setTindex(Math.min(parseInt(this._tindex) + 1, this.getTindexes().length - 1), noRedraw);
-      }
+    var t, times;
+    if (!this.hasTimes) {
+      return;
+    }
+    t = this.getTime();
+    times = this.getTimes();
+    if ((t != null) && times.indexOf(t) < times.length - 1) {
+      return this.setTime(times[times.indexOf(t) + 1], noRedraw);
     }
   };
 
   CloudburstOL3.prototype.higher = function(noRedraw) {
-    if (this._layer != null) {
-      if (parseInt(this._layer) < this.getLayers().length - 1) {
-        return this.getLayers(Math.min(parseInt(this._layer) + 1, this.getLayers().length - 1), noRedraw);
-      }
+    var l, levels;
+    if (!this.hasLevels) {
+      return;
+    }
+    l = this.getLevel();
+    levels = this.getLevels();
+    if ((l != null) && levels.indexOf(l) < levels.length - 1) {
+      return this.setLevel(levels[levels.indexOf(l) + 1], noRedraw);
     }
   };
 
   CloudburstOL3.prototype.deeper = function(noRedraw) {
-    if (this._layer != null) {
-      if (parseInt(this._layer) > 0) {
-        return this.setLayer(Math.max(parseInt(this._layer) - 1, 0), noRedraw);
-      }
+    var l, levels;
+    if (!this.hasLevels) {
+      return;
+    }
+    l = this.getLevel();
+    levels = this.getLevels();
+    if ((l != null) && levels.indexOf(l) > 0) {
+      return this.setLevel(levels[levels.indexOf(l) - 1], noRedraw);
     }
   };
 
-  CloudburstOL3.prototype.getTindexesAsPercetagePositions = function() {
-    var diff, max_ts, min_ts, t, ts;
-    ts = (function() {
-      var j, len, ref, results;
-      ref = this.getTindexes(true);
-      results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        t = ref[j];
-        results.push(Date.parse(t[1]) / 1000);
-      }
-      return results;
-    }).call(this);
-    min_ts = Math.min.apply(null, ts);
-    max_ts = Math.max.apply(null, ts);
-    diff = max_ts - min_ts;
-    return (function() {
-      var j, len, ref, results;
-      ref = (function() {
-        var k, len, results1;
-        results1 = [];
-        for (k = 0, len = ts.length; k < len; k++) {
-          t = ts[k];
-          results1.push(t - min_ts);
-        }
-        return results1;
-      })();
-      results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        t = ref[j];
-        results.push(t / diff * 100);
-      }
-      return results;
-    })();
+  CloudburstOL3.prototype.tileUrl = function(tileCoord, pixelRatio, projection) {
+    var x, y, z;
+    z = tileCoord[0];
+    x = tileCoord[1];
+    y = tileCoord[2] + (1 << z);
+    return this.urlTemplate.replace('<time>', !this.hasTimes ? 0 : this.getTimes().indexOf(this.getTime())).replace('<level>', !this.hasLevels ? 0 : this.getLevels().indexOf(this.getLevel())).replace('{z}', z).replace('{x}', x).replace('{y}', y);
   };
 
   return CloudburstOL3;

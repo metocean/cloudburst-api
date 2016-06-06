@@ -1,6 +1,6 @@
-logging = off
+tileHost = "http://localhost:6060"
 
-addCloudburstCGM = (json, host) ->
+addCloudburstCGM = (json) ->
 
   map = new google.maps.Map(document.getElementById('map'),
     center:
@@ -8,22 +8,22 @@ addCloudburstCGM = (json, host) ->
       lng: -98.35
     zoom: 5
   )
-  cgm = new CloudburstMapType(json, host, map)
-  map.overlayMapTypes.insertAt(0, cgm)
 
-  # console.log CloudburstMapType()
-  # map.mapTypes.set('cloudburst', new CloudburstMapType())
-  # map.setMapTypeId('cloudburst')
+  layerid = 3
+  for layer in json
+    if layer.id.indexOf('1440') > -1
+      # Prefer one of the rotation track layers, else just take the arbitrary default
+      layerid = layer.id
 
-  # cgm = new CloudburstGM(json, host)
-  # cgm.setImageMapType({})
-  #
-  # map.overlayMapTypes.push(cgm.ImageMapType)
+  cloudburst.loadLayer(layerid).then (layer) ->
+    cloudburst.loadInstance(layer.id, layer.instances[0].id).then (instance) ->
+      cloudburst.loadTimes(layer.id, instance.id).then (times) ->
+        cloudburst.loadLevels(layer.id, instance.id).then (levels) ->
 
-initMap = () ->
+          cgm = new CloudburstMapType(
+            tileHost + instance.resources.tile, times, levels, layer.bounds, map
+          )
+          map.overlayMapTypes.insertAt(0, cgm)
 
-  cloudburst = new Cloudburst()
-  callback = addCloudburstCGM
-  cloudburst.loadConfiguration(callback)
-
-initMap()
+cloudburst = new Cloudburst()
+cloudburst.loadConfiguration(addCloudburstCGM)

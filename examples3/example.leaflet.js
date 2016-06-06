@@ -17,13 +17,17 @@
 
     function LayersViewModel() {
       var self = this;
-      self.tileHost = 'http://localhost:6060';
-      self.layersURI = 'http://localhost:9090/wxtiles/layer';
-      self.legendURI = 'http://localhost:6060/wxtiles/legend/small/horizontal/'; // TODO get from layer > instance > resources.legend
-      // self.layersURI = 'http://tapa01.unisys.metocean.co.nz/layer';
+      var host = 'http://localhost:6060'
+      // var host = 'http://tapa01.unisys.metocean.co.nz/'
+      self.tileHost = host;
+      self.layersURI = host + '/wxtiles/layer';
+      self.legendURI = host + '/wxtiles/legend/small/horizontal/';
       self.layers = ko.observableArray();
 
       self.ajax = function(uri, method, data) {
+        if (!(uri.endsWith('/'))) {
+          uri = uri + '/';
+        }
         var request = {
           url: uri,
           type: method,
@@ -52,13 +56,14 @@
             title: ko.observable(layers[i].meta.name),
             description: ko.observable(layers[i].meta.description),
             units: ko.observable(layers[i].meta.unit_system),
-            legend: ko.observable(self.legendURI + '/' + layers[i].id + '/' + instances[0] + '.png')
+            // TODO get legend from resources
+            legend: ko.observable([self.legendURI, layers[i].id, instances[0] + '.png'].join('/'))
           });
         }
       });
 
       self.getLayer = function(layer) {
-        var path = self.layersURI + '/' + layer.layerID();
+        var path = [self.layersURI, layer.layerID()].join('/');
         self.ajax(path, 'GET').done(function(data) {
           return data;
         });
@@ -70,7 +75,7 @@
       }
 
       self.getInstance = function(layer, instanceID, callback) {
-        var path = self.layersURI + '/' + layer.layerID() + '/' + instanceID + '/';
+        var path = [self.layersURI, layer.layerID(), instanceID].join('/');
         console.log(path);
         self.ajax(path, 'GET').done(function(data) {
           return callback(data);
@@ -78,7 +83,7 @@
       }
 
       self.getTimes = function(layer, instanceID, callback) {
-        var path = self.layersURI + '/' + layer.layerID() + '/' + instanceID + '/times/';
+        var path = [self.layersURI, layer.layerID(), instanceID, 'times'].join('/');
         self.ajax(path, 'GET').done(function(data) {
           return callback(data);
         })

@@ -1,20 +1,21 @@
-logging = off
-
 class CloudburstOL3
 
-  constructor: (config, host) ->
-    @_host = host
-    @_config = config
-    @_layers = @getLayers()
+  constructor: (urlTemplate, times, levels, bounds, host) ->
 
     @_htmlattr = '&copy;<a href="http://www.metocean.co.nz/">MetOcean Solutions Ltd</a>'
 
-    # Select the first available layer, and first instance, index
-    @setLayer(@_layers[0], no)
-    @setInstance(@getInstances()[0], no)
-    @setTindex(@getTindexes()[0], no)
-    @setLevel(@getLevels()[0], no)
-    @setRenderer('mpl', no) # TODO
+    @_times = if times? then times else null
+    @_levels = if levels? then levels else null
+
+    @hasTimes = if @_times then true else false
+    @hasLevels = if @_levels then true else false
+
+    @setTime(if @_times? then @_times[0] else 0)
+    @setLevel(if @_levels? then @_levels[0] else 0)
+
+    @bounds = if bounds? then bounds else null
+
+    @urlTemplate = urlTemplate
 
     @tileLayer = undefined
     @
@@ -27,12 +28,6 @@ class CloudburstOL3
   redraw: ->
     if @tileLayer?
       @tileLayer.getSource().changed()
-
-  tileUrl: (tileCoord, pixelRatio, projection) ->
-    z = tileCoord[0]
-    x = tileCoord[1]
-    y = tileCoord[2] + (1 << z) # Accounting for bottom-left origin
-    "#{@_host}/tile/#{@_renderer}/#{@_layer}/#{@_instance}/#{@_tindex}/#{@_level}/#{z}/#{x}/#{y}.png"
 
   setOL3LayerTile: (options) =>
     # Returns ol.layer.Tile with ol.source.XYZ with custom tileUrlFunction that
@@ -58,162 +53,84 @@ class CloudburstOL3
     @tileLayer = tileLayer
     @tileLayer
 
-  getConfig: ->
-    @_config
-
-  getLayers: (asObj) ->
-    # asObj (bool):
-    # - true: returns the layers as an array of tuples: (short name, json)
-    # - false: returns the layers as an array of short names
-    if @_config?
-      if !asObj? or !asObj
-        lyrs = Object.keys(@_config)
-      else
-        lyrs = ([lyr, @_config[lyr]] for lyr in Object.keys(@_config))
-      return lyrs
-
-  setLayer: (layer, noRedraw) ->
-    if @_layers? and layer in @_layers
-        @_layer = layer
-        @redraw() if !noRedraw? or !noRedraw
-        if logging is on
-          console.log("Layer set to: #{@_layer}")
-    @
-
-  getLayer: ->
-    @_layer
-
-  getLayerLegendUrl: (size, orientation) ->
-    if !size? or !size
-      size = "small" # or "large"
-    if !orientation? or !orientation
-      orientation = "horiztonal" # or "vertical"
-    layerurl = "#{@_host}/legend/#{size}/#{orientation}/#{@getLayer()}/#{@getInstance()}.png"
-    return layerurl
-
   getLayerBounds: ->
     # Returns bounds as ol.proj.TransformExtent
-    if @_layer? and @_instance?
-      bounds = @_config[@_layer]['dataset'][@_instance]['bounds']
+    if @bounds?
       return ol.proj.transformExtent(
-        [bounds['west'], bounds['south'], bounds['east'], bounds['north']],
+        [@bounds['west'], @bounds['south'], @bounds['east'], @bounds['north']],
         'EPSG:4326', 'EPSG:3857'
       )
 
-  getLayerMetadata: ->
-    if @_layer?
-      @_config[@_layer].meta
-
-  getLayerDescription: ->
-    if @_layer?
-      @getLayerMetadata().description
-
-  getLayerName: ->
-    if @_layer?
-      @getLayerMetadata().name
-
-  getLayerUnits: ->
-    if @_layer?
-      @getLayerMetadata().units
-
-  getLayerPlotDefinitions: ->
-    if @_layer
-      @_config[@_layer].plot_defs
-
-  getInstances: ->
-    if @_layer?
-      Object.keys(@_config[@_layer]['dataset'])
-
-  setInstance: (instance, noRedraw) ->
-    if instance?
-      @_instance = instance
-      @redraw() if !noRedraw? or !noRedraw
-      if logging is on
-        console.log("Instance set to: #{@_instance}")
-    @
-
-  getInstance: ->
-    @_instance
-
-  getLevels: (asObj) ->
+  getLevels: ->
     # Vertical dimension
-    if @_instance? and @_layer? and 'levels' in Object.keys @_config[@_layer]['dataset'][@_instance]
-      levels = Object.keys(@_config[@_layer]['dataset'][@_instance]['levels'])
-      if asObj? and asObj
-        levels = ([i, @_config[@_layer]['dataset'][@_instance]['levels'][i]] for i in levels)
-      return levels
-    return if !asObj then ["0"] else {"0": undefined}
+    @_levels
 
   setLevel: (level, noRedraw) ->
+    if !@hasLevels
+      return @
     if level.toString() in @getLevels()
       @_level = level.toString()
       @redraw() if !noRedraw? or !noRedraw
-      if logging is on
-        console.log("Level set to: #{@_level}")
     @
 
   getLevel: ->
     @_level
 
-  getTindexes: (asObj) ->
+  getTimes: ->
     # Time-indexes (tindexes)
-    # if named? and named: returns the values (e.g. ["2015-09-01T03:00:00Z"]),
-    # else returns the index values (e.g [0,1,2])
-    if @_instance? and @_layer?
-      tindexes = Object.keys(@_config[@_layer]['dataset'][@_instance].times)
-      if asObj? and asObj
-        tindexes = ([i, @_config[@_layer]['dataset'][@_instance].times[i]] for i in tindexes)
-    return tindexes
+    @_times
 
-  setTindex: (tindex, noRedraw) ->
-    if tindex.toString() in @getTindexes()
-      @_tindex = tindex.toString()
+  setTime: (time, noRedraw) ->
+    if !@hasTimes
+      @_time = 0
+      return @
+    else if time in @getTimes()
+      @_time = time.toString()
       @redraw() if !noRedraw? or !noRedraw
-      if logging is on
-        console.log("Tindex set to: #{@_tindex}")
     @
 
-  getTindex: (as_time_string) ->
-    if !as_time_string? then @_tindex else @getTindexes(yes)[@_tindex][1]
-
-  getRenderer: ->
-    @_renderer
-
-  setRenderer: (renderer, noRedraw) ->
-    @_renderer = renderer
-    @redraw() if !noRedraw? or !noRedraw
-    @
+  getTime: (as_time_string) ->
+    @_time
 
   back: (noRedraw) ->
-    if @_tindex?
-      if parseInt(@_tindex) > 0
-        @setTindex(Math.max(parseInt(@_tindex) - 1, 0), noRedraw)
+    if !@hasTimes
+      return
+    t = @getTime()
+    times = @getTimes()
+    if t? and times.indexOf(t) > 0
+      @setTime(times[times.indexOf(t)-1], noRedraw)
 
   forward: (noRedraw) ->
-    if @_tindex?
-      if parseInt(@_tindex) < @getTindexes().length - 1
-        @setTindex(Math.min(parseInt(@_tindex) + 1, @getTindexes().length - 1), noRedraw)
+    if !@hasTimes
+      return
+    t = @getTime()
+    times = @getTimes()
+    if t? and times.indexOf(t) < times.length - 1
+      @setTime(times[times.indexOf(t)+1], noRedraw)
 
   higher: (noRedraw) ->
-    if @_layer?
-      if parseInt(@_layer) < @getLayers().length - 1
-        @getLayers(Math.min(parseInt(@_layer) + 1, @getLayers().length - 1), noRedraw)
+    if !@hasLevels
+      return
+    l = @getLevel()
+    levels = @getLevels()
+    if l? and levels.indexOf(l) < levels.length - 1
+      @setLevel(levels[levels.indexOf(l)+1], noRedraw)
 
   deeper: (noRedraw) ->
-    if @_layer?
-      if parseInt(@_layer) > 0
-        @setLayer(Math.max(parseInt(@_layer) - 1, 0), noRedraw)
+    if !@hasLevels
+      return
+    l = @getLevel()
+    levels = @getLevels()
+    if l? and levels.indexOf(l) > 0
+      @setLevel(levels[levels.indexOf(l)-1], noRedraw)
 
-
-  getTindexesAsPercetagePositions: ->
-    # Takes an array of datetime strings from @getTindexes, and returns an array
-    # of the same length where the datetimes are represented as floats
-    # indicating their percentage value from 0 to 100, where 0 is the lowest
-    # value in the array, and 100 is the highest value.
-    # Useful for displaying an array of time values in irregular intervals along
-    # a line.
-    ts = (Date.parse(t[1])/1000 for t in @getTindexes(yes))
-    min_ts = Math.min.apply(null, ts)
-    max_ts = Math.max.apply(null, ts)
-    diff = max_ts - min_ts
-    return (t / diff * 100 for t in (t - min_ts for t in ts))
+  tileUrl: (tileCoord, pixelRatio, projection) ->
+      z = tileCoord[0]
+      x = tileCoord[1]
+      y = tileCoord[2] + (1 << z) # Accounting for bottom-left origin
+      @urlTemplate
+      .replace('<time>', if !@hasTimes then 0 else @getTimes().indexOf(@getTime()))
+      .replace('<level>', if !@hasLevels then 0 else @getLevels().indexOf(@getLevel()))
+      .replace('{z}', z)
+      .replace('{x}', x)
+      .replace('{y}', y)

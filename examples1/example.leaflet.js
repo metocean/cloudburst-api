@@ -1,4 +1,6 @@
-var callback, cloudburst, get_cloudburst_tileLayer, get_supplementary_tileLayer, make_map, sample_add_random_layer, sample_layer_control;
+var add_cloudburst_tile_layer, appendElements, cloudburst, get_cloudburst_tileLayer, get_supplementary_tileLayer, layer_control, make_map, removeOptions, tileHost;
+
+tileHost = "http://localhost:6060";
 
 make_map = function(layers, mapdiv) {
   var map;
@@ -12,15 +14,29 @@ make_map = function(layers, mapdiv) {
   return map;
 };
 
-get_cloudburst_tileLayer = function(json, host) {
+get_cloudburst_tileLayer = function(urlTemplate, times, levels, bounds, options) {
   var cloudburstTileLayer;
-  cloudburstTileLayer = L.cloudburstTileLayer(host, json, {
+  cloudburstTileLayer = L.cloudburstTileLayer(urlTemplate, times, levels, bounds, {
     maxZoom: 21,
     maxNativeZoom: 21,
     reuseTiles: true,
     detectRetina: true
   });
   return cloudburstTileLayer;
+};
+
+removeOptions = function(container_id) {
+  return $("#" + container_id).find('option').remove();
+};
+
+appendElements = function(container_id, element, content, title) {
+  var el;
+  el = document.createElement(element);
+  el.innerHTML = content;
+  if (title != null) {
+    el.setAttribute('title', title);
+  }
+  document.getElementById(container_id).appendChild(el);
 };
 
 get_supplementary_tileLayer = function() {
@@ -33,98 +49,128 @@ get_supplementary_tileLayer = function() {
   return supplementary;
 };
 
-sample_add_random_layer = function(json) {
-  var cloudburstTileLayer, randomindex;
-  cloudburstTileLayer = get_cloudburst_tileLayer(json, host);
-  randomindex = Math.floor(Math.random() * Object.keys(json.layers).length);
-  cloudburstTileLayer.setLayer(Object.keys(json.layers)[randomindex]);
-  return make_map([get_supplementary_tileLayer(), cloudburstTileLayer]);
+add_cloudburst_tile_layer = function(map, json, layerid) {
+  var instance, layer;
+  layer = json.filter(function(obj) {
+    return obj.id === layerid;
+  })[0];
+  map.eachLayer(function(lyr) {
+    if (lyr._url.indexOf('basemaps') === -1) {
+      return map.removeLayer(lyr);
+    }
+  });
+  return instance = cloudburst.loadInstance(layer.id, layer.instances[0].id).then(function(instance) {
+    var times;
+    return times = cloudburst.loadTimes(layer.id, layer.instances[0].id).then(function(times) {
+      var levels;
+      return levels = cloudburst.loadLevels(layer.id, layer.instances[0].id).then(function(levels) {
+        var cloudburstTileLayer;
+        cloudburstTileLayer = get_cloudburst_tileLayer(tileHost + instance.resources.tile, times, levels, layer.bounds);
+        cloudburstTileLayer.addTo(map);
+        map.fitBounds(cloudburstTileLayer.getBounds());
+        return cloudburstTileLayer;
+      });
+    });
+  });
 };
 
-sample_layer_control = function(json, host) {
-  var appendElements, cloudburstTileLayer, do_appendElements, removeOptions;
-  cloudburstTileLayer = get_cloudburst_tileLayer(json, host);
-  make_map([get_supplementary_tileLayer(), cloudburstTileLayer]);
-  removeOptions = function(container_id) {
-    return $("#" + container_id).find('option').remove();
-  };
-  appendElements = function(container_id, element, content, title) {
-    var el;
-    el = document.createElement(element);
-    el.innerHTML = content;
-    if (title != null) {
-      el.setAttribute('title', title);
+layer_control = function(json) {
+  var i, instance, j, layer, len, len1, lyr, map, ref;
+  layer = json[0];
+  removeOptions('layers');
+  for (i = 0, len = json.length; i < len; i++) {
+    lyr = json[i];
+    appendElements('layers', 'option', lyr.meta.name, lyr.id);
+  }
+  ref = layer.instances;
+  for (j = 0, len1 = ref.length; j < len1; j++) {
+    instance = ref[j];
+    appendElements('instances', 'option', instance.id);
+  }
+  cloudburst.loadTimes(layer.id, layer.instances[0].id).then(function(times) {
+    var k, len2, results, t;
+    results = [];
+    for (k = 0, len2 = times.length; k < len2; k++) {
+      t = times[k];
+      results.push(appendElements('indexes', 'option', t, t));
     }
-    document.getElementById(container_id).appendChild(el);
-  };
-  do_appendElements = function(refresh_layers, refresh_instances, refresh_tindexes) {
-    var i, instances, j, k, len, len1, len2, lyr, ref, ref1, ref2, tindex;
-    if ((refresh_layers == null) || refresh_layers) {
-      removeOptions('layers');
-      ref = cloudburstTileLayer.getLayers(true);
-      for (i = 0, len = ref.length; i < len; i++) {
-        lyr = ref[i];
-        appendElements('layers', 'option', lyr[1].meta.name, lyr[0]);
-      }
-    }
-    if ((refresh_instances == null) || refresh_instances) {
-      removeOptions('instances');
-      ref1 = cloudburstTileLayer.getInstances();
-      for (j = 0, len1 = ref1.length; j < len1; j++) {
-        instances = ref1[j];
-        appendElements('instances', 'option', instances);
-      }
-      cloudburstTileLayer.setInstance($('#instances').val());
-    }
-    if ((refresh_tindexes == null) || refresh_tindexes) {
-      removeOptions('indexes');
-      ref2 = cloudburstTileLayer.getTindexes(true);
-      for (k = 0, len2 = ref2.length; k < len2; k++) {
-        tindex = ref2[k];
-        appendElements('indexes', 'option', tindex[1], tindex[0]);
-      }
-    }
-  };
-  do_appendElements(true, true, true);
+    return results;
+  });
+  map = make_map([get_supplementary_tileLayer()]);
+  add_cloudburst_tile_layer(map, json, layer.id);
   $('#layers').change(function() {
-    cloudburstTileLayer.setLayer($('option:selected', this).attr('title'));
-    return do_appendElements(false, true, true);
+    return cloudburst.loadLayer($('option:selected', this).attr('title')).then(function(layer) {
+      var k, len2, ref1;
+      removeOptions('instances');
+      ref1 = layer.instances;
+      for (k = 0, len2 = ref1.length; k < len2; k++) {
+        instance = ref1[k];
+        appendElements('instances', 'option', instance.id);
+      }
+      removeOptions('indexes');
+      return cloudburst.loadTimes(layer.id, layer.instances[0].id).then(function(times) {
+        var l, len3, t;
+        for (l = 0, len3 = times.length; l < len3; l++) {
+          t = times[l];
+          appendElements('indexes', 'option', t, t);
+        }
+        return add_cloudburst_tile_layer(map, json, layer.id);
+      });
+    });
   });
   $('#instances').change(function() {
-    cloudburstTileLayer.setInstance($(this).val());
-    return do_appendElements(false, false, true);
+    return cloudburst.loadLayer($('option:selected', this).attr('title')).then(function(layer) {
+      removeOptions('indexes');
+      return cloudburst.loadTimes(layer.id, layer.instances[0].id).then(function(times) {
+        var k, len2, t;
+        for (k = 0, len2 = times.length; k < len2; k++) {
+          t = times[k];
+          appendElements('indexes', 'option', t, t);
+        }
+        return add_cloudburst_tile_layer(map, json, layer.id);
+      });
+    });
   });
   $('#indexes').change(function() {
-    return cloudburstTileLayer.setTindex($('option:selected', this).attr('title'));
+    var new_time;
+    new_time = $('option:selected', this).attr('title');
+    return map.eachLayer(function(lyr) {
+      if (lyr._url.indexOf('basemaps') === -1) {
+        return lyr.setTime(new_time);
+      }
+    });
   });
-  $('#step-backward').click(function() {
-    var newval;
-    cloudburstTileLayer.back();
-    newval = parseInt(cloudburstTileLayer.getTindex());
-    if (newval === 0) {
-      $('#step-backward').addClass('disabled');
-    } else {
-      $('#step-backward').removeClass('disabled');
-    }
-    $('#step-forward').removeClass('disabled');
-    return $('#indexes').prop("selectedIndex", newval);
+  $('#step-forward').click(function() {
+    return map.eachLayer(function(lyr) {
+      if (lyr._url.indexOf('basemaps') === -1) {
+        lyr.back();
+        if (lyr.getTimes().indexOf(lyr.getTime()) === 0) {
+          $('#step-backward').addClass('disabled');
+        } else {
+          $('#step-backward').removeClass('disabled');
+        }
+        $('#step-forward').removeClass('disabled');
+        return $("#indexes").val(lyr.getTime());
+      }
+    });
   });
   return $('#step-forward').click(function() {
-    var newval;
-    cloudburstTileLayer.forward();
-    newval = parseInt(cloudburstTileLayer.getTindex());
-    if (newval === cloudburstTileLayer.getTindexes().length - 1) {
-      $('#step-forward').addClass('disabled');
-    } else {
-      $('#step-forward').removeClass('disabled');
-    }
-    $('#step-backward').removeClass('disabled');
-    return $('#indexes').prop("selectedIndex", newval);
+    return map.eachLayer(function(lyr) {
+      if (lyr._url.indexOf('basemaps') === -1) {
+        lyr.forward();
+        console.log(lyr.getTime());
+        if (lyr.getTimes().indexOf(lyr.getTime()) === lyr.getTimes().length - 1) {
+          $('#step-forward').addClass('disabled');
+        } else {
+          $('#step-forward').removeClass('disabled');
+        }
+        $('#step-backward').removeClass('disabled');
+        return $("#indexes").val(lyr.getTime());
+      }
+    });
   });
 };
 
 cloudburst = new Cloudburst();
 
-callback = sample_layer_control;
-
-cloudburst.loadConfiguration(callback);
+cloudburst.loadConfiguration(layer_control);

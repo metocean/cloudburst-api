@@ -307,22 +307,7 @@ layer_control = (json, host) ->
       zoom_to_layer(map, l[0])
     )
 
-
-
-
-
-
-
-
-
-  # # Prepare global slider
-  # make_global_slider(on)
-
-# New Cloudburst, given a compatible host
+# New Cloudburst
 cloudburst = new Cloudburst()
 # Load the configuration file, with callback
 cloudburst.loadConfiguration(layer_control)
-
-
-# cloudburst.loadLayer('ncep_hs')
-# cloudburst.loadInstance(layerID, instanceID, callback)

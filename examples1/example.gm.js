@@ -1,9 +1,9 @@
-var addCloudburstCGM, initMap, logging;
+var addCloudburstCGM, cloudburst, tileHost;
 
-logging = false;
+tileHost = "http://localhost:6060";
 
-addCloudburstCGM = function(json, host) {
-  var cgm, map;
+addCloudburstCGM = function(json) {
+  var i, layer, layerid, len, map;
   map = new google.maps.Map(document.getElementById('map'), {
     center: {
       lat: 39.50,
@@ -11,15 +11,26 @@ addCloudburstCGM = function(json, host) {
     },
     zoom: 5
   });
-  cgm = new CloudburstMapType(json, host, map);
-  return map.overlayMapTypes.insertAt(0, cgm);
+  layerid = 3;
+  for (i = 0, len = json.length; i < len; i++) {
+    layer = json[i];
+    if (layer.id.indexOf('1440') > -1) {
+      layerid = layer.id;
+    }
+  }
+  return cloudburst.loadLayer(layerid).then(function(layer) {
+    return cloudburst.loadInstance(layer.id, layer.instances[0].id).then(function(instance) {
+      return cloudburst.loadTimes(layer.id, instance.id).then(function(times) {
+        return cloudburst.loadLevels(layer.id, instance.id).then(function(levels) {
+          var cgm;
+          cgm = new CloudburstMapType(tileHost + instance.resources.tile, times, levels, layer.bounds, map);
+          return map.overlayMapTypes.insertAt(0, cgm);
+        });
+      });
+    });
+  });
 };
 
-initMap = function() {
-  var callback, cloudburst;
-  cloudburst = new Cloudburst();
-  callback = addCloudburstCGM;
-  return cloudburst.loadConfiguration(callback);
-};
+cloudburst = new Cloudburst();
 
-initMap();
+cloudburst.loadConfiguration(addCloudburstCGM);

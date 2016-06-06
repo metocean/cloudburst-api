@@ -1,9 +1,12 @@
 var Cloudburst, HOST, ajax;
 
-HOST = 'http://localhost:9090';
+HOST = 'http://localhost:6060';
 
 ajax = function(uri, method, data) {
   var request;
+  if (!uri.endsWith('/')) {
+    uri = uri + '/';
+  }
   console.log(method + ' request to ' + uri);
   request = {
     url: uri,
@@ -22,38 +25,51 @@ ajax = function(uri, method, data) {
 
 Cloudburst = (function() {
   function Cloudburst() {
-    this.layersURI = "http://localhost:9090/wxtiles/layer";
+    this.layersURI = HOST + "/wxtiles/layer";
   }
 
   Cloudburst.prototype.loadConfiguration = function(cb) {
     return ajax(this.layersURI, 'GET').done(function(layers) {
       if (cb != null) {
-        return cb(layers);
+        cb(layers);
       }
+      return cb;
     });
   };
 
   Cloudburst.prototype.loadLayer = function(layerID, cb) {
     return ajax([this.layersURI, layerID].join('/'), 'GET').done(function(layer) {
       if (cb != null) {
-        return cb(layer);
+        cb(layer);
       }
+      return cb;
     });
   };
 
   Cloudburst.prototype.loadInstance = function(layerID, instanceID, cb) {
     return ajax([this.layersURI, layerID, instanceID].join('/'), 'GET').done(function(instance) {
       if (cb != null) {
-        return cb(instance);
+        cb(instance);
       }
+      return cb;
     });
   };
 
   Cloudburst.prototype.loadTimes = function(layerID, instanceID, cb) {
-    return ajax([this.layersURI, layerID, instanceID, 'times/'].join('/'), 'GET').done(function(times) {
+    return ajax([this.layersURI, layerID, instanceID, 'times'].join('/'), 'GET').done(function(times) {
       if (cb != null) {
-        return cb(times);
+        cb(times);
       }
+      return cb;
+    });
+  };
+
+  Cloudburst.prototype.loadLevels = function(layerID, instanceID, cb) {
+    return ajax([this.layersURI, layerID, instanceID, 'levels'].join('/'), 'GET').done(function(levels) {
+      if (cb != null) {
+        cb(levels);
+      }
+      return cb;
     });
   };
 

@@ -62,7 +62,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
     if !@hasTimes
       return
     t = @getTime()
-    if t? and @getTimes().indexOf(t) > 0
+    times = @getTimes()
+    if t? and times.indexOf(t) > 0
       @setTime(times[times.indexOf(t)-1], noRedraw)
 
   forward: (noRedraw) ->

@@ -61,12 +61,13 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     return this._time;
   },
   back: function(noRedraw) {
-    var t;
+    var t, times;
     if (!this.hasTimes) {
       return;
     }
     t = this.getTime();
-    if ((t != null) && this.getTimes().indexOf(t) > 0) {
+    times = this.getTimes();
+    if ((t != null) && times.indexOf(t) > 0) {
       return this.setTime(times[times.indexOf(t) - 1], noRedraw);
     }
   },

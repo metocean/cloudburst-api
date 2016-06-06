@@ -27,6 +27,8 @@ function main() {
   // Add zoom and rotation controls to the map.
   map.addControl(new mapboxgl.Navigation());
 
+  // /wxtiles/pbf/ncep_mslp/20151117_12z/<time>/0/{z}/{x}/{y}.mvt
+
   map.on('style.load', function() {
     map.addSource('msl', {
       type: 'vector',
