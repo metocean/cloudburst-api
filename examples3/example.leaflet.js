@@ -17,11 +17,8 @@
 
     function LayersViewModel() {
       var self = this;
-      var host = 'http://localhost:6060'
-      // var host = 'http://tapa01.unisys.metocean.co.nz/'
-      self.tileHost = host;
-      self.layersURI = host + '/wxtiles/layer';
-      self.legendURI = host + '/wxtiles/legend/small/horizontal/';
+      self.tileHost = CBCONFIG.host;
+      self.layersURI = CBCONFIG.layers;
       self.layers = ko.observableArray();
 
       self.ajax = function(uri, method, data) {
@@ -49,6 +46,9 @@
           for (j = 0, len = layers[i].instances.length; j < len; j++) {
             instances.push(layers[i].instances[j].id);
           }
+          legend = CBCONFIG.host + layers[i].instances[0].resources.legend
+          .replace('<size>', 'small')
+          .replace('<orientation>', 'horizontal');
           self.layers.push({
             layerID: ko.observable(layers[i].id),
             bounds: ko.observable(layers[i].bounds),
@@ -56,8 +56,7 @@
             title: ko.observable(layers[i].meta.name),
             description: ko.observable(layers[i].meta.description),
             units: ko.observable(layers[i].meta.unit_system),
-            // TODO get legend from resources
-            legend: ko.observable([self.legendURI, layers[i].id, instances[0] + '.png'].join('/'))
+            legend: ko.observable(legend)
           });
         }
       });

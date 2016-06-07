@@ -1,5 +1,3 @@
-tileHost = "http://localhost:6060"
-
 change_header = (new_t) ->
   t = document.getElementById('time')
   if t?
@@ -23,7 +21,7 @@ init = () ->
           cloudburst.loadLevels(layer.id, instance.id).then (levels) ->
 
             cb = new CloudburstOL3(
-              tileHost + instance.resources.tile, times, levels, layer.bounds
+              CBCONFIG.host + instance.resources.tile, times, levels, layer.bounds
             )
             cb.setOL3LayerTile() # Sets and returns cb.tileLayer
 

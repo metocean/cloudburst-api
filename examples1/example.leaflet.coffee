@@ -1,5 +1,3 @@
-tileHost = "http://localhost:6060"
-
 make_map = (layers, mapdiv) ->
   # Create a leaflet map centred over New Zealand with two tile layers
   mapdiv = if mapdiv? then mapdiv else 'map'
@@ -51,7 +49,7 @@ add_cloudburst_tile_layer = (map, json, layerid) ->
   instance = cloudburst.loadInstance(layer.id, layer.instances[0].id).then (instance) ->
     times = cloudburst.loadTimes(layer.id, layer.instances[0].id).then (times) ->
       levels = cloudburst.loadLevels(layer.id, layer.instances[0].id).then (levels) ->
-        cloudburstTileLayer = get_cloudburst_tileLayer tileHost + instance.resources.tile, times, levels, layer.bounds
+        cloudburstTileLayer = get_cloudburst_tileLayer CBCONFIG.host + instance.resources.tile, times, levels, layer.bounds
 
         cloudburstTileLayer.addTo(map)
         map.fitBounds(cloudburstTileLayer.getBounds())

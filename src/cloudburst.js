@@ -1,6 +1,9 @@
-var Cloudburst, HOST, ajax;
+var CBCONFIG, Cloudburst, ajax;
 
-HOST = 'http://localhost:6060';
+CBCONFIG = {
+  "host": "http://tapa01.unisys.metocean.co.nz",
+  "layers": 'http://tapa01.unisys.metocean.co.nz/wxtiles/layer'
+};
 
 ajax = function(uri, method, data) {
   var request;
@@ -25,7 +28,7 @@ ajax = function(uri, method, data) {
 
 Cloudburst = (function() {
   function Cloudburst() {
-    this.layersURI = HOST + "/wxtiles/layer";
+    this.layersURI = CBCONFIG.host + "/wxtiles/layer";
   }
 
   Cloudburst.prototype.loadConfiguration = function(cb) {

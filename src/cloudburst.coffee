@@ -1,8 +1,12 @@
 # coffee -cb src/cloudburst.coffee
 
-# HOST = 'http://www.metoceanview.com:6060'
-HOST = 'http://localhost:6060'
-# HOST = 'http://tapa01.unisys.metocean.co.nz'
+# "host": "http://www.metoceanview.com:6060"
+# "host": "http://tapa01.unisys.metocean.co.nz"
+# "host": 'http://localhost:6060'
+CBCONFIG = {
+  "host": "http://tapa01.unisys.metocean.co.nz",
+  "layers": 'http://tapa01.unisys.metocean.co.nz/wxtiles/layer'
+};
 
 ajax = (uri, method, data) ->
   if !uri.endsWith('/')
@@ -24,7 +28,7 @@ ajax = (uri, method, data) ->
 
 class Cloudburst
   constructor: ->
-    @layersURI = "#{HOST}/wxtiles/layer"
+    @layersURI = "#{CBCONFIG.host}/wxtiles/layer"
 
   loadConfiguration: (cb) ->
     # TODO tags filter?

@@ -1,6 +1,4 @@
-var change_header, init, main, tileHost;
-
-tileHost = "http://localhost:6060";
+var change_header, init, main;
 
 change_header = function(new_t) {
   var t;
@@ -27,7 +25,7 @@ init = function() {
         return cloudburst.loadTimes(layer.id, instance.id).then(function(times) {
           return cloudburst.loadLevels(layer.id, instance.id).then(function(levels) {
             var basemap, cb, map, osm;
-            cb = new CloudburstOL3(tileHost + instance.resources.tile, times, levels, layer.bounds);
+            cb = new CloudburstOL3(CBCONFIG.host + instance.resources.tile, times, levels, layer.bounds);
             cb.setOL3LayerTile();
             basemap = new ol.layer.Tile({
               source: new ol.source.XYZ({

@@ -1,4 +1,4 @@
-var activate_layers, appendElements, basemap_dark, basemap_light_labels, basemapnames, basemaps, basemaps_urls, closest, cloudburst, create_layer_table, debug, diff, do_appendInstances, do_appendLayers, get_button, get_cloudburst_tileLayer, get_opacity_slider, get_supplementary_tileLayer, global_time, layer_control, make_global_slider, make_map, make_opacity_slider, move_in_array, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, tileHost, toggle_el_property, url, zoom_to_layer,
+var activate_layers, appendElements, basemap_dark, basemap_light_labels, basemapnames, basemaps, basemaps_urls, closest, cloudburst, create_layer_table, debug, diff, do_appendInstances, do_appendLayers, get_button, get_cloudburst_tileLayer, get_opacity_slider, get_supplementary_tileLayer, global_time, layer_control, make_global_slider, make_map, make_opacity_slider, move_in_array, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property, url, zoom_to_layer,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 get_supplementary_tileLayer = function(url) {
@@ -38,8 +38,6 @@ basemapnames = {
 global_time = void 0;
 
 debug = false;
-
-tileHost = "http://localhost:6060";
 
 make_map = function(mapdiv) {
   var map;
@@ -221,7 +219,7 @@ create_layer_table = function(map, layers, table_id) {
     }
     legend = row.insertCell(5);
     legendURL = instance.resources.legend.replace('<size>', 'small').replace('<orientation>', 'horizontal');
-    legend.innerHTML = "<img src=\"" + tileHost + legendURL + "\" alt='' />";
+    legend.innerHTML = "<img src=\"" + CBCONFIG.host + legendURL + "\" alt='' />";
     $(legend).addClass('col-md-3');
   }
   $(".remove-layer").click(function() {
@@ -330,7 +328,7 @@ on_modal_layer_confirm = function(map, cb) {
   return cloudburst.loadLayer(layerID, function(layer) {
     return cloudburst.loadInstance(layerID, instanceID, function(instance) {
       var tileTemplate;
-      tileTemplate = [tileHost, instance.resources.tile].join('');
+      tileTemplate = [CBCONFIG.host, instance.resources.tile].join('');
       return cloudburst.loadTimes(layerID, instanceID, function(times) {
         var selected_lyr;
         selected_lyr = new L.cloudburstTileLayer(tileTemplate, times, void 0, layer.bounds);

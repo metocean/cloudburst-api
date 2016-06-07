@@ -1,6 +1,4 @@
-var addCloudburstCGM, cloudburst, tileHost;
-
-tileHost = "http://localhost:6060";
+var addCloudburstCGM, cloudburst;
 
 addCloudburstCGM = function(json) {
   var i, layer, layerid, len, map;
@@ -23,7 +21,7 @@ addCloudburstCGM = function(json) {
       return cloudburst.loadTimes(layer.id, instance.id).then(function(times) {
         return cloudburst.loadLevels(layer.id, instance.id).then(function(levels) {
           var cgm;
-          cgm = new CloudburstMapType(tileHost + instance.resources.tile, times, levels, layer.bounds, map);
+          cgm = new CloudburstMapType(CBCONFIG.host + instance.resources.tile, times, levels, layer.bounds, map);
           return map.overlayMapTypes.insertAt(0, cgm);
         });
       });

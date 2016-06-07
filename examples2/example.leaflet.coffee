@@ -22,8 +22,6 @@ global_time = undefined
 
 debug = off
 
-tileHost = "http://localhost:6060"
-
 make_map = (mapdiv) ->
   # Create a leaflet map with a list of tilelayers
   mapdiv = if mapdiv? then mapdiv else 'map'
@@ -171,7 +169,7 @@ create_layer_table = (map, layers, table_id) ->
     legendURL = instance.resources.legend
     .replace('<size>', 'small')
     .replace('<orientation>', 'horizontal')
-    legend.innerHTML = "<img src=\"#{tileHost}#{legendURL}\" alt='' />"
+    legend.innerHTML = "<img src=\"#{CBCONFIG.host}#{legendURL}\" alt='' />"
     $(legend).addClass 'col-md-3'
 
 
@@ -236,7 +234,7 @@ on_modal_layer_confirm = (map, cb) ->
   instanceID = $('option:selected', $('#instances')).val()
   cloudburst.loadLayer(layerID, (layer) ->
     cloudburst.loadInstance(layerID, instanceID, (instance) ->
-      tileTemplate = [tileHost, instance.resources.tile].join('')
+      tileTemplate = [CBCONFIG.host, instance.resources.tile].join('')
       cloudburst.loadTimes(layerID, instanceID, (times) ->
         selected_lyr = new L.cloudburstTileLayer(tileTemplate, times, undefined, layer.bounds)
         if cb?

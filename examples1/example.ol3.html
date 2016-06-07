@@ -10,20 +10,19 @@
 		<script src="../bower_components/jquery-ui/jquery-ui.min.js"></script>
 		<link rel="stylesheet" href="../bower_components/jquery-ui/themes/smoothness/jquery-ui.min.css">
     <style>
-      .map {
-        height: 600px;
-        width: 100%;
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
       }
-
-      h2 {
-        font: 20px arial, sans-serif;
+      #map {
+        height: 100%;
       }
     </style>
     <script src="../src/cloudburst.js"></script>
     <script src="../src/cloudburst.ol.layer.Tile.js"></script>
   </head>
   <body onload="main()">
-    <h2>Cloudburst: OpenLayers3 Demonstration<span id="time"></span></h2>
     <div id="map" class="map"></div>
     <script src="example.ol3.js"></script>
   </body>

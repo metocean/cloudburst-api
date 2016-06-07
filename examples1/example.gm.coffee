@@ -1,5 +1,3 @@
-tileHost = "http://localhost:6060"
-
 addCloudburstCGM = (json) ->
 
   map = new google.maps.Map(document.getElementById('map'),
@@ -21,7 +19,7 @@ addCloudburstCGM = (json) ->
         cloudburst.loadLevels(layer.id, instance.id).then (levels) ->
 
           cgm = new CloudburstMapType(
-            tileHost + instance.resources.tile, times, levels, layer.bounds, map
+            CBCONFIG.host + instance.resources.tile, times, levels, layer.bounds, map
           )
           map.overlayMapTypes.insertAt(0, cgm)
 
