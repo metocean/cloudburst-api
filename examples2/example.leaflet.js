@@ -219,7 +219,7 @@ create_layer_table = function(map, layers, table_id) {
     }
     legend = row.insertCell(5);
     legendURL = instance.resources.legend.replace('<size>', 'small').replace('<orientation>', 'horizontal');
-    legend.innerHTML = "<img src=\"" + CBCONFIG.host + legendURL + "\" alt='' />";
+    legend.innerHTML = "<img src=\"" + CBCONFIG.host + legendURL + "\" alt='' onerror=\"this.style.display='none'\"/>";
     $(legend).addClass('col-md-3');
   }
   $(".remove-layer").click(function() {

@@ -37,7 +37,7 @@
         <td>
           <p><b data-bind="text: title"></b></p>
           <p data-bind="text: description"></p>
-          <img data-bind="attr:{src: legend}" />
+          <img data-bind="attr:{src: legend}" onerror="this.style.display='none'"/>
         </td>
         <td>
           <button data-bind="click: $parent.getLayer" class="btn">Log Layer</button>

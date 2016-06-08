@@ -169,7 +169,7 @@ create_layer_table = (map, layers, table_id) ->
     legendURL = instance.resources.legend
     .replace('<size>', 'small')
     .replace('<orientation>', 'horizontal')
-    legend.innerHTML = "<img src=\"#{CBCONFIG.host}#{legendURL}\" alt='' />"
+    legend.innerHTML = "<img src=\"#{CBCONFIG.host}#{legendURL}\" alt='' onerror=\"this.style.display='none'\"/>"
     $(legend).addClass 'col-md-3'
 
 
