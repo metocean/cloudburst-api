@@ -61,8 +61,6 @@ move_in_array = (array, old_index, new_index) ->
   return array
 
 toggle_el_property = (elem_id, property, off_on) ->
-  if debug is on
-    console.log "Turning #{elem_id} #{property} #{off_on}"
   $("##{elem_id}").prop(property, off_on)
 
 closest = (array, target) ->
@@ -89,7 +87,6 @@ get_opacity_slider = (slider_id) ->
   return input.outerHTML
 
 make_opacity_slider = (layers, slider_id, value, step) ->
-  console.log layers[parseInt(slider_id.split("-")[-1..][0])][0].options.opacity
   $("##{slider_id}")
   .slider
     min: 0
@@ -168,10 +165,10 @@ create_layer_table = (map, layers, table_id) ->
       depth.innerHTML = increase + decrease
       $(".increase-depth-#{rowi}").on 'click', ->
         btn_row = parseInt(this.id.split("-")[-1..][0])
-        layers[btn_row].deeper(no)
+        layers[btn_row][0].deeper(no)
       $(".decrease-depth-#{rowi}").on 'click', ->
         btn_row = parseInt(this.id.split("-")[-1..][0])
-        layers[btn_row].higher(no)
+        layers[btn_row][0].higher(no)
     else
       depth.innerHTML = "<span>No depth</span>"
 
@@ -246,10 +243,12 @@ on_modal_layer_confirm = (map, cb) ->
     cloudburst.loadInstance(layerID, instanceID, (instance) ->
       tileTemplate = [CBCONFIG.host, layer.resources.tile.replace('<instance>', instanceID)].join('')
       cloudburst.loadTimes(layerID, instanceID, (times) ->
-        selected_lyr = new L.cloudburstTileLayer(tileTemplate, times, undefined, layer.bounds)
-        if cb?
-          return cb([selected_lyr, layer, instance])
-        return [selected_lyr, layer, instance]
+        cloudburst.loadLevels(layerID, instanceID, (levels) ->
+          selected_lyr = new L.cloudburstTileLayer(tileTemplate, times, levels, layer.bounds)
+          if cb?
+            return cb([selected_lyr, layer, instance])
+          return [selected_lyr, layer, instance]
+        )
       )
     )
   )

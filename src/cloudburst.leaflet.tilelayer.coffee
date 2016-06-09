@@ -41,7 +41,7 @@ L.CloudburstTileLayer = L.TileLayer.extend
     @_levels
 
   setLevel: (level, noRedraw) ->
-    if !@hasLevels
+    if !@hasLevels or !level?
       return @
     if level.toString() in @getLevels()
       @_level = level.toString()
@@ -87,16 +87,16 @@ L.CloudburstTileLayer = L.TileLayer.extend
       return
     l = @getLevel()
     levels = @getLevels()
-    if l? and levels.indexOf(l) < levels.length - 1
-      @setLevel(levels[levels.indexOf(l)+1], noRedraw)
+    if levels.indexOf(l) > 0
+      @setLevel(levels[levels.indexOf(l)-1], noRedraw)
 
   deeper: (noRedraw) ->
     if !@hasLevels
       return
     l = @getLevel()
     levels = @getLevels()
-    if l? and levels.indexOf(l) > 0
-      @setLevel(levels[levels.indexOf(l)-1], noRedraw)
+    if levels.indexOf(l) < levels.length + 1
+      @setLevel(levels[levels.indexOf(l)+1], noRedraw)
 
   getTileUrl: (coords) ->
     L.TileLayer.prototype.getTileUrl

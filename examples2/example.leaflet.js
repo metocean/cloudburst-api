@@ -97,9 +97,6 @@ move_in_array = function(array, old_index, new_index) {
 };
 
 toggle_el_property = function(elem_id, property, off_on) {
-  if (debug === true) {
-    console.log("Turning " + elem_id + " " + property + " " + off_on);
-  }
   return $("#" + elem_id).prop(property, off_on);
 };
 
@@ -138,7 +135,6 @@ get_opacity_slider = function(slider_id) {
 };
 
 make_opacity_slider = function(layers, slider_id, value, step) {
-  console.log(layers[parseInt(slider_id.split("-").slice(-1)[0])][0].options.opacity);
   $("#" + slider_id).slider({
     min: 0,
     max: 100,
@@ -230,12 +226,12 @@ create_layer_table = function(map, layers, table_id) {
       $(".increase-depth-" + rowi).on('click', function() {
         var btn_row;
         btn_row = parseInt(this.id.split("-").slice(-1)[0]);
-        return layers[btn_row].deeper(false);
+        return layers[btn_row][0].deeper(false);
       });
       $(".decrease-depth-" + rowi).on('click', function() {
         var btn_row;
         btn_row = parseInt(this.id.split("-").slice(-1)[0]);
-        return layers[btn_row].higher(false);
+        return layers[btn_row][0].higher(false);
       });
     } else {
       depth.innerHTML = "<span>No depth</span>";
@@ -353,12 +349,14 @@ on_modal_layer_confirm = function(map, cb) {
       var tileTemplate;
       tileTemplate = [CBCONFIG.host, layer.resources.tile.replace('<instance>', instanceID)].join('');
       return cloudburst.loadTimes(layerID, instanceID, function(times) {
-        var selected_lyr;
-        selected_lyr = new L.cloudburstTileLayer(tileTemplate, times, void 0, layer.bounds);
-        if (cb != null) {
-          return cb([selected_lyr, layer, instance]);
-        }
-        return [selected_lyr, layer, instance];
+        return cloudburst.loadLevels(layerID, instanceID, function(levels) {
+          var selected_lyr;
+          selected_lyr = new L.cloudburstTileLayer(tileTemplate, times, levels, layer.bounds);
+          if (cb != null) {
+            return cb([selected_lyr, layer, instance]);
+          }
+          return [selected_lyr, layer, instance];
+        });
       });
     });
   });

@@ -33,7 +33,7 @@ L.CloudburstTileLayer = L.TileLayer.extend({
   },
   setLevel: function(level, noRedraw) {
     var ref;
-    if (!this.hasLevels) {
+    if (!this.hasLevels || (level == null)) {
       return this;
     }
     if (ref = level.toString(), indexOf.call(this.getLevels(), ref) >= 0) {
@@ -94,8 +94,8 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     }
     l = this.getLevel();
     levels = this.getLevels();
-    if ((l != null) && levels.indexOf(l) < levels.length - 1) {
-      return this.setLevel(levels[levels.indexOf(l) + 1], noRedraw);
+    if (levels.indexOf(l) > 0) {
+      return this.setLevel(levels[levels.indexOf(l) - 1], noRedraw);
     }
   },
   deeper: function(noRedraw) {
@@ -105,8 +105,8 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     }
     l = this.getLevel();
     levels = this.getLevels();
-    if ((l != null) && levels.indexOf(l) > 0) {
-      return this.setLevel(levels[levels.indexOf(l) - 1], noRedraw);
+    if (levels.indexOf(l) < levels.length + 1) {
+      return this.setLevel(levels[levels.indexOf(l) + 1], noRedraw);
     }
   },
   getTileUrl: function(coords) {
