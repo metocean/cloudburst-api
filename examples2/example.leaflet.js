@@ -1,4 +1,4 @@
-var activate_layers, appendElements, basemap_dark, basemap_light_labels, basemapnames, basemaps, basemaps_urls, closest, cloudburst, create_layer_table, debug, diff, do_appendInstances, do_appendLayers, get_button, get_cloudburst_tileLayer, get_opacity_slider, get_supplementary_tileLayer, global_time, layer_control, make_global_slider, make_map, make_opacity_slider, move_in_array, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, toggle_el_property, url, zoom_to_layer,
+var activate_layers, appendElements, basemap_dark, basemap_light_labels, basemapnames, basemaps, basemaps_urls, closest, cloudburst, create_layer_table, debug, diff, do_appendInstances, do_appendLayers, get_button, get_cloudburst_tileLayer, get_opacity_slider, get_supplementary_tileLayer, global_time, layer_control, make_global_slider, make_map, make_opacity_slider, move_in_array, on_modal_layer_change, on_modal_layer_confirm, prepare_modal_dialogue, removeOptions, sortByKey, toggle_el_property, url, zoom_to_layer,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 get_supplementary_tileLayer = function(url) {
@@ -56,6 +56,29 @@ make_map = function(mapdiv) {
   }
   L.control.layers(basemapnames).addTo(map);
   return map;
+};
+
+sortByKey = function(array, key, rev) {
+  rev = rev != null ? rev : false;
+  return array.sort(function(a, b) {
+    var ref, ref1, ref2, ref3, x, y;
+    x = a[key];
+    y = b[key];
+    console.log('comparing', x, ' and ', y);
+    if (!rev) {
+      return (ref = x < y) != null ? ref : -{
+        1: (ref1 = x > y) != null ? ref1 : {
+          1: 0
+        }
+      };
+    } else {
+      return (ref2 = x > y) != null ? ref2 : -{
+        1: (ref3 = x < y) != null ? ref3 : {
+          1: 0
+        }
+      };
+    }
+  });
 };
 
 diff = function(ary) {
@@ -133,11 +156,12 @@ make_opacity_slider = function(layers, slider_id, value, step) {
 };
 
 do_appendLayers = function(layersJson, refresh_layers) {
-  var j, len, lyr;
+  var j, len, lyr, ref;
   if ((refresh_layers == null) || refresh_layers) {
     removeOptions('layers');
-    for (j = 0, len = layersJson.length; j < len; j++) {
-      lyr = layersJson[j];
+    ref = sortByKey(layersJson, 'id', true);
+    for (j = 0, len = ref.length; j < len; j++) {
+      lyr = ref[j];
       appendElements('layers', 'option', lyr.meta.name, lyr.id);
     }
   }
@@ -147,7 +171,7 @@ do_appendInstances = function(layerJson, refresh_instances) {
   var instance, j, len, ref;
   if ((refresh_instances == null) || refresh_instances) {
     removeOptions('instances');
-    ref = layerJson.instances;
+    ref = sortByKey(layerJson.instances, 'id');
     for (j = 0, len = ref.length; j < len; j++) {
       instance = ref[j];
       appendElements('instances', 'option', instance.id);
