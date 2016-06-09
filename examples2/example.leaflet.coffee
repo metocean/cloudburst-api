@@ -43,7 +43,6 @@ sortByKey = (array, key, rev) ->
   return array.sort (a, b) ->
     x = a[key]
     y = b[key]
-    console.log 'comparing', x, ' and ', y
     if !rev
       return ((x < y) ? -1 : ((x > y) ? 1 : 0))
     else

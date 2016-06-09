@@ -64,7 +64,6 @@ sortByKey = function(array, key, rev) {
     var ref, ref1, ref2, ref3, x, y;
     x = a[key];
     y = b[key];
-    console.log('comparing', x, ' and ', y);
     if (!rev) {
       return (ref = x < y) != null ? ref : -{
         1: (ref1 = x > y) != null ? ref1 : {

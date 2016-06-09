@@ -1,10 +1,5 @@
 L.CloudburstTileLayer = L.TileLayer.extend
-  options:
-    minZoom: 0
-    maxZoom: 17
-    tms: yes
-    zoomOffset: 0
-    detectRetina: true
+
 
   initialize: (urlTemplate, times, levels, bounds, options) ->
     @_times = if times? then times else null
@@ -17,8 +12,21 @@ L.CloudburstTileLayer = L.TileLayer.extend
     @setLevel(if @_levels? then @_levels[0] else 0)
 
     @bounds = if bounds? then bounds else null
+    if !options?
+      options = {
+        minZoom: 0
+        maxZoom: 21
+        tms: yes
+        zoomOffset: 0
+        detectRetina: true
+      }
 
-    L.TileLayer.prototype.initialize.call(@, urlTemplate, options, bounds, times, levels)
+    if @bounds? and !('bounds' in options) and (@bounds['west'] < @bounds['east'])
+      # If the bounds includes or passes the antimeridian, leaflet will have a cry,
+      # son only limit tile requests for simple bounds
+      options.bounds = @getBounds() # Prevents leaflet from requesting tiles outside extent
+
+    L.TileLayer.prototype.initialize.call(@, urlTemplate, options)
 
   getBounds: ->
     # Returns bounds as L.latLngBounds

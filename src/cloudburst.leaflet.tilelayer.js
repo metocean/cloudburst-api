@@ -1,13 +1,6 @@
 var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 L.CloudburstTileLayer = L.TileLayer.extend({
-  options: {
-    minZoom: 0,
-    maxZoom: 17,
-    tms: true,
-    zoomOffset: 0,
-    detectRetina: true
-  },
   initialize: function(urlTemplate, times, levels, bounds, options) {
     this._times = times != null ? times : null;
     this._levels = levels != null ? levels : null;
@@ -16,7 +9,19 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     this.setTime(this._times != null ? this._times[0] : 0);
     this.setLevel(this._levels != null ? this._levels[0] : 0);
     this.bounds = bounds != null ? bounds : null;
-    return L.TileLayer.prototype.initialize.call(this, urlTemplate, options, bounds, times, levels);
+    if (options == null) {
+      options = {
+        minZoom: 0,
+        maxZoom: 21,
+        tms: true,
+        zoomOffset: 0,
+        detectRetina: true
+      };
+    }
+    if ((this.bounds != null) && !(indexOf.call(options, 'bounds') >= 0) && (this.bounds['west'] < this.bounds['east'])) {
+      options.bounds = this.getBounds();
+    }
+    return L.TileLayer.prototype.initialize.call(this, urlTemplate, options);
   },
   getBounds: function() {
     if (this.bounds != null) {
