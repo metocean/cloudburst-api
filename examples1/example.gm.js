@@ -21,7 +21,7 @@ addCloudburstCGM = function(json) {
       return cloudburst.loadTimes(layer.id, instance.id).then(function(times) {
         return cloudburst.loadLevels(layer.id, instance.id).then(function(levels) {
           var cgm;
-          cgm = new CloudburstMapType(CBCONFIG.host + instance.resources.tile, times, levels, layer.bounds, map);
+          cgm = new CloudburstMapType(CBCONFIG.host + layer.resources.tile.replace('<instance>', instance.id), times, levels, layer.bounds, map);
           return map.overlayMapTypes.insertAt(0, cgm);
         });
       });

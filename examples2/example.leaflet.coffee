@@ -166,7 +166,7 @@ create_layer_table = (map, layers, table_id) ->
       depth.innerHTML = "<span>No depth</span>"
 
     legend = row.insertCell(5)
-    legendURL = instance.resources.legend
+    legendURL = layer.resources.legend.replace('<instance>', instance.id)
     .replace('<size>', 'small')
     .replace('<orientation>', 'horizontal')
     legend.innerHTML = "<img src=\"#{CBCONFIG.host}#{legendURL}\" alt='' onerror=\"this.style.display='none'\"/>"
@@ -234,7 +234,7 @@ on_modal_layer_confirm = (map, cb) ->
   instanceID = $('option:selected', $('#instances')).val()
   cloudburst.loadLayer(layerID, (layer) ->
     cloudburst.loadInstance(layerID, instanceID, (instance) ->
-      tileTemplate = [CBCONFIG.host, instance.resources.tile].join('')
+      tileTemplate = [CBCONFIG.host, layer.resources.tile.replace('<instance>', instanceID)].join('')
       cloudburst.loadTimes(layerID, instanceID, (times) ->
         selected_lyr = new L.cloudburstTileLayer(tileTemplate, times, undefined, layer.bounds)
         if cb?

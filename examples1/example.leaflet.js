@@ -59,11 +59,11 @@ add_cloudburst_tile_layer = function(map, json, layerid) {
   });
   return instance = cloudburst.loadInstance(layer.id, layer.instances[0].id).then(function(instance) {
     var times;
-    return times = cloudburst.loadTimes(layer.id, layer.instances[0].id).then(function(times) {
+    return times = cloudburst.loadTimes(layer.id, instance.id).then(function(times) {
       var levels;
-      return levels = cloudburst.loadLevels(layer.id, layer.instances[0].id).then(function(levels) {
+      return levels = cloudburst.loadLevels(layer.id, instance.id).then(function(levels) {
         var cloudburstTileLayer;
-        cloudburstTileLayer = get_cloudburst_tileLayer(CBCONFIG.host + instance.resources.tile, times, levels, layer.bounds);
+        cloudburstTileLayer = get_cloudburst_tileLayer(CBCONFIG.host + layer.resources.tile.replace('<instance>', instance.id), times, levels, layer.bounds);
         cloudburstTileLayer.addTo(map);
         map.fitBounds(cloudburstTileLayer.getBounds());
         return cloudburstTileLayer;

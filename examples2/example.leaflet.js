@@ -218,7 +218,7 @@ create_layer_table = function(map, layers, table_id) {
       depth.innerHTML = "<span>No depth</span>";
     }
     legend = row.insertCell(5);
-    legendURL = instance.resources.legend.replace('<size>', 'small').replace('<orientation>', 'horizontal');
+    legendURL = layer.resources.legend.replace('<instance>', instance.id).replace('<size>', 'small').replace('<orientation>', 'horizontal');
     legend.innerHTML = "<img src=\"" + CBCONFIG.host + legendURL + "\" alt='' onerror=\"this.style.display='none'\"/>";
     $(legend).addClass('col-md-3');
   }
@@ -328,7 +328,7 @@ on_modal_layer_confirm = function(map, cb) {
   return cloudburst.loadLayer(layerID, function(layer) {
     return cloudburst.loadInstance(layerID, instanceID, function(instance) {
       var tileTemplate;
-      tileTemplate = [CBCONFIG.host, instance.resources.tile].join('');
+      tileTemplate = [CBCONFIG.host, layer.resources.tile.replace('<instance>', instanceID)].join('');
       return cloudburst.loadTimes(layerID, instanceID, function(times) {
         var selected_lyr;
         selected_lyr = new L.cloudburstTileLayer(tileTemplate, times, void 0, layer.bounds);

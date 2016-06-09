@@ -46,7 +46,9 @@
           for (j = 0, len = layers[i].instances.length; j < len; j++) {
             instances.push(layers[i].instances[j].id);
           }
-          legend = CBCONFIG.host + layers[i].instances[0].resources.legend
+          // NOTE: example doesn't really use instances, so
+          legend = CBCONFIG.host + layers[i].resources.legend
+          .replace('<instance>', layers[i].instances[0].id)
           .replace('<size>', 'small')
           .replace('<orientation>', 'horizontal');
           self.layers.push({
@@ -56,7 +58,8 @@
             title: ko.observable(layers[i].meta.name),
             description: ko.observable(layers[i].meta.description),
             units: ko.observable(layers[i].meta.unit_system),
-            legend: ko.observable(legend)
+            legend: ko.observable(legend),
+            resources: ko.observable(layers[i].resources)
           });
         }
       });
@@ -91,15 +94,14 @@
       // self.getLevels = function(layer, instanceID, callback)
 
       self.getSampleTile = function(layer) {
-        self.getInstance(layer, layer.instances()[0], function(data) {
-          var templateURL = self.tileHost + data.resources.tile;
-          self.getTimes(layer, layer.instances()[0], function(times) {
-            var levels;
-            var bounds = layer.bounds();
-            var cbTileLayer = new L.cloudburstTileLayer(templateURL, times, levels, bounds, cloudburstOptions);
-            cbTileLayer.addTo(map);
-            map.fitBounds(cbTileLayer.getBounds());
-          });
+        var templateURL = self.tileHost + layer.resources().tile
+        .replace('<instance>', layer.instances()[0]);
+        self.getTimes(layer, layer.instances()[0], function(times) {
+          var levels;
+          var bounds = layer.bounds();
+          var cbTileLayer = new L.cloudburstTileLayer(templateURL, times, levels, bounds, cloudburstOptions);
+          cbTileLayer.addTo(map);
+          map.fitBounds(cbTileLayer.getBounds());
         });
       }
     }

@@ -21,7 +21,7 @@ init = () ->
           cloudburst.loadLevels(layer.id, instance.id).then (levels) ->
 
             cb = new CloudburstOL3(
-              CBCONFIG.host + instance.resources.tile, times, levels, layer.bounds
+              CBCONFIG.host + layer.resources.tile.replace('<instance>', instance.id), times, levels, layer.bounds
             )
             cb.setOL3LayerTile() # Sets and returns cb.tileLayer
 

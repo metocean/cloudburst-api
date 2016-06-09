@@ -47,9 +47,9 @@ add_cloudburst_tile_layer = (map, json, layerid) ->
       map.removeLayer(lyr)
 
   instance = cloudburst.loadInstance(layer.id, layer.instances[0].id).then (instance) ->
-    times = cloudburst.loadTimes(layer.id, layer.instances[0].id).then (times) ->
-      levels = cloudburst.loadLevels(layer.id, layer.instances[0].id).then (levels) ->
-        cloudburstTileLayer = get_cloudburst_tileLayer CBCONFIG.host + instance.resources.tile, times, levels, layer.bounds
+    times = cloudburst.loadTimes(layer.id, instance.id).then (times) ->
+      levels = cloudburst.loadLevels(layer.id, instance.id).then (levels) ->
+        cloudburstTileLayer = get_cloudburst_tileLayer CBCONFIG.host + layer.resources.tile.replace('<instance>', instance.id), times, levels, layer.bounds
 
         cloudburstTileLayer.addTo(map)
         map.fitBounds(cloudburstTileLayer.getBounds())

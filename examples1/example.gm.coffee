@@ -19,7 +19,7 @@ addCloudburstCGM = (json) ->
         cloudburst.loadLevels(layer.id, instance.id).then (levels) ->
 
           cgm = new CloudburstMapType(
-            CBCONFIG.host + instance.resources.tile, times, levels, layer.bounds, map
+            CBCONFIG.host + layer.resources.tile.replace('<instance>', instance.id), times, levels, layer.bounds, map
           )
           map.overlayMapTypes.insertAt(0, cgm)
 
