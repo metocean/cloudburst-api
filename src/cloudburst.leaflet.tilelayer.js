@@ -110,7 +110,7 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     }
   },
   getTileUrl: function(coords) {
-    return L.TileLayer.prototype.getTileUrl.call(this, coords).replace('<time>', !this.hasTimes ? 0 : this.getTimes().indexOf(this.getTime())).replace('<level>', !this.hasLevels ? 0 : this.getLevels().indexOf(this.getLevel()));
+    return L.TileLayer.prototype.getTileUrl.call(this, coords).replace('<time>', !this.hasTimes ? 0 : this.getTime()).replace('<level>', !this.hasLevels ? 0 : this.getLevel());
   }
 });
 

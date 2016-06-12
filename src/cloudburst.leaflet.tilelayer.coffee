@@ -101,8 +101,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
   getTileUrl: (coords) ->
     L.TileLayer.prototype.getTileUrl
       .call(@, coords)
-      .replace('<time>', if !@hasTimes then 0 else @getTimes().indexOf(@getTime()))
-      .replace('<level>', if !@hasLevels then 0 else @getLevels().indexOf(@getLevel()))
+      .replace('<time>', if !@hasTimes then 0 else @getTime())
+      .replace('<level>', if !@hasLevels then 0 else @getLevel())
 
 L.cloudburstTileLayer = (urlTemplate, times, levels, bounds, options) ->
   new L.CloudburstTileLayer(urlTemplate, times, levels, bounds, options)

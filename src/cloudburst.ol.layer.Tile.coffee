@@ -129,8 +129,8 @@ class CloudburstOL3
       x = tileCoord[1]
       y = tileCoord[2] + (1 << z) # Accounting for bottom-left origin
       @urlTemplate
-      .replace('<time>', if !@hasTimes then 0 else @getTimes().indexOf(@getTime()))
-      .replace('<level>', if !@hasLevels then 0 else @getLevels().indexOf(@getLevel()))
+      .replace('<time>', if !@hasTimes then 0 else @getTime())
+      .replace('<level>', if !@hasLevels then 0 else @getLevel())
       .replace('{z}', z)
       .replace('{x}', x)
       .replace('{y}', y)

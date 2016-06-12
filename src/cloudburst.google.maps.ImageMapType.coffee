@@ -108,8 +108,8 @@ CloudburstMapType.prototype.getTile = (coord, zoom, ownerDocument) ->
   # y = (1 << zoom) - coord.y - 1
   y = bound - normalizedCoord.y - 1
   url = @urlTemplate
-  .replace('<time>', if !@hasTimes then 0 else @getTimes().indexOf(@getTime()))
-  .replace('<level>', if !@hasLevels then 0 else @getLevels().indexOf(@getLevel()))
+  .replace('<time>', if !@hasTimes then 0 else @getTime())
+  .replace('<level>', if !@hasLevels then 0 else @getLevel())
   .replace('{z}', zoom)
   .replace('{x}', x)
   .replace('{y}', y)
