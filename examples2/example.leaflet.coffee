@@ -290,6 +290,7 @@ get_cloudburst_tileLayer = (urlTemplate, times, levels, bounds, options) ->
     opacity: if opacity? then opacity else 1.0
     zIndex: if zIndex? then zIndex else null
     edgeBufferTiles: 2
+    tms: true
 
   return cloudburstTileLayer
 

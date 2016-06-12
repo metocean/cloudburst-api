@@ -413,7 +413,8 @@ get_cloudburst_tileLayer = function(urlTemplate, times, levels, bounds, options)
     detectRetina: true,
     opacity: typeof opacity !== "undefined" && opacity !== null ? opacity : 1.0,
     zIndex: typeof zIndex !== "undefined" && zIndex !== null ? zIndex : null,
-    edgeBufferTiles: 2
+    edgeBufferTiles: 2,
+    tms: true
   });
   return cloudburstTileLayer;
 };

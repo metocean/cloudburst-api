@@ -15,6 +15,7 @@ get_cloudburst_tileLayer = (urlTemplate, times, levels, bounds, options) ->
     maxNativeZoom: 21
     reuseTiles: yes
     detectRetina: yes
+    tms: true
 
   return cloudburstTileLayer
 

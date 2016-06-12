@@ -18,7 +18,8 @@ get_cloudburst_tileLayer = function(urlTemplate, times, levels, bounds, options)
     maxZoom: 21,
     maxNativeZoom: 21,
     reuseTiles: true,
-    detectRetina: true
+    detectRetina: true,
+    tms: true
   });
   return cloudburstTileLayer;
 };
