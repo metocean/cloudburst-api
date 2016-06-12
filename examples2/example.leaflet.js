@@ -59,16 +59,22 @@ make_map = function(mapdiv) {
 };
 
 sortByKey = function(array, key, rev) {
-  var sorted=array.sort(function(a, b) {
-    if (a[key]<b[key]){
+  var sorted;
+  rev = rev != null ? rev : false;
+  sorted = array.sort(function(a, b) {
+    if (a[key] < b[key]) {
       return -1;
-    }else if (a[key]>b[key]){
+    } else if (a[key] > b[key]) {
       return 1;
-    }else{
+    } else {
       return 0;
     }
   });
-  return (rev) ? sorted.reverse() : sorted;
+  if (rev) {
+    return sorted.reverse();
+  } else {
+    return sorted;
+  }
 };
 
 diff = function(ary) {
@@ -145,7 +151,7 @@ do_appendLayers = function(layersJson, refresh_layers) {
   var j, len, lyr, ref;
   if ((refresh_layers == null) || refresh_layers) {
     removeOptions('layers');
-    ref = sortByKey(layersJson, 'id', true);
+    ref = sortByKey(layersJson, 'id', false);
     for (j = 0, len = ref.length; j < len; j++) {
       lyr = ref[j];
       appendElements('layers', 'option', lyr.meta.name, lyr.id);

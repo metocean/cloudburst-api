@@ -40,13 +40,15 @@ make_map = (mapdiv) ->
 
 sortByKey = (array, key, rev) ->
   rev = if rev? then rev else false
-  return array.sort (a, b) ->
-    x = a[key]
-    y = b[key]
-    if !rev
-      return ((x < y) ? -1 : ((x > y) ? 1 : 0))
+  sorted = array.sort((a, b) ->
+    if a[key] < b[key]
+      -1
+    else if a[key] > b[key]
+      1
     else
-      return ((x > y) ? -1 : ((x < y) ? 1 : 0))
+      return 0
+  )
+  if rev then sorted.reverse() else sorted
 
 diff = (ary) ->
   newA = []
@@ -105,13 +107,13 @@ make_opacity_slider = (layers, slider_id, value, step) ->
 do_appendLayers = (layersJson, refresh_layers) ->
   if (!refresh_layers? or refresh_layers)
     removeOptions('layers')
-    appendElements('layers', 'option', lyr.meta.name, lyr.id) for lyr in sortByKey(layersJson, 'id', true)
+    appendElements('layers', 'option', lyr.meta.name, lyr.id) for lyr in sortByKey(layersJson, 'id', false)
   return
 
 do_appendInstances = (layerJson, refresh_instances) ->
   if (!refresh_instances? or refresh_instances)
     removeOptions('instances')
-    appendElements('instances', 'option', instance.id) for instance in sortByKey(layerJson.instances, 'id')
+    appendElements('instances', 'option', instance.id) for instance in sortByKey(layerJson.instances, 'id', true)
   return
 
 get_button = (id, icon_classes, button_classes) ->
