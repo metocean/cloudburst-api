@@ -1,8 +1,8 @@
 var CBCONFIG, Cloudburst, ajax;
 
 CBCONFIG = {
-  "host": "http://tapa01.unisys.metocean.co.nz",
-  "layers": 'http://tapa01.unisys.metocean.co.nz/wxtiles/layer'
+  "host": "api.wxtiles.com",
+  "layers": "api.wxtiles.com/wxtiles/layer"
 };
 
 ajax = function(uri, method, data) {

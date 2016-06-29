@@ -4,8 +4,8 @@
 # "host": "http://tapa01.unisys.metocean.co.nz"
 # "host": 'http://localhost:6060'
 CBCONFIG = {
-  "host": "http://tapa01.unisys.metocean.co.nz",
-  "layers": 'http://tapa01.unisys.metocean.co.nz/wxtiles/layer'
+  "host": "api.wxtiles.com",
+  "layers": "api.wxtiles.com/wxtiles/layer"
 };
 
 ajax = (uri, method, data) ->
