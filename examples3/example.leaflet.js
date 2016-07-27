@@ -77,7 +77,7 @@
       }
 
       self.getInstance = function(layer, instanceID, callback) {
-        var path = [self.layersURI, layer.layerID(), instanceID].join('/');
+        var path = [self.layersURI, layer.layerID(), 'instance', instanceID].join('/');
         console.log(path);
         self.ajax(path, 'GET').done(function(data) {
           return callback(data);
@@ -85,7 +85,7 @@
       }
 
       self.getTimes = function(layer, instanceID, callback) {
-        var path = [self.layersURI, layer.layerID(), instanceID, 'times'].join('/');
+        var path = [self.layersURI, layer.layerID(), 'instance', instanceID, 'times'].join('/');
         self.ajax(path, 'GET').done(function(data) {
           return callback(data);
         })

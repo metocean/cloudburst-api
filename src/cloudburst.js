@@ -1,8 +1,8 @@
 var CBCONFIG, Cloudburst, ajax;
 
 CBCONFIG = {
-  "host": "api.wxtiles.com",
-  "layers": "api.wxtiles.com/wxtiles/layer"
+  "host": 'https://api.wxtiles.com',
+  "layers": 'https://api.wxtiles.com/wxtiles/layer'
 };
 
 ajax = function(uri, method, data) {
@@ -50,7 +50,7 @@ Cloudburst = (function() {
   };
 
   Cloudburst.prototype.loadInstance = function(layerID, instanceID, cb) {
-    return ajax([this.layersURI, layerID, instanceID].join('/'), 'GET').done(function(instance) {
+    return ajax([this.layersURI, layerID, 'instance', instanceID].join('/'), 'GET').done(function(instance) {
       if (cb != null) {
         cb(instance);
       }
@@ -59,7 +59,7 @@ Cloudburst = (function() {
   };
 
   Cloudburst.prototype.loadTimes = function(layerID, instanceID, cb) {
-    return ajax([this.layersURI, layerID, instanceID, 'times'].join('/'), 'GET').done(function(times) {
+    return ajax([this.layersURI, layerID, 'instance', instanceID, 'times'].join('/'), 'GET').done(function(times) {
       if (cb != null) {
         cb(times);
       }
@@ -68,7 +68,7 @@ Cloudburst = (function() {
   };
 
   Cloudburst.prototype.loadLevels = function(layerID, instanceID, cb) {
-    return ajax([this.layersURI, layerID, instanceID, 'levels'].join('/'), 'GET').done(function(levels) {
+    return ajax([this.layersURI, layerID, 'instance', instanceID, 'levels'].join('/'), 'GET').done(function(levels) {
       if (cb != null) {
         cb(levels);
       }

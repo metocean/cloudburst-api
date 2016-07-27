@@ -2,10 +2,12 @@
 
 # "host": "http://www.metoceanview.com:6060"
 # "host": "http://tapa01.unisys.metocean.co.nz"
-# "host": 'http://localhost:6060'
+# "host": 'http://localhost'
+# "host": "http://tilecache03.wxtiles.com"
+# "host": "https://api.wxtiles.com"
 CBCONFIG = {
-  "host": "api.wxtiles.com",
-  "layers": "api.wxtiles.com/wxtiles/layer"
+  "host": 'https://api.wxtiles.com',
+  "layers": 'https://api.wxtiles.com/wxtiles/layer'
 };
 
 ajax = (uri, method, data) ->
@@ -46,21 +48,21 @@ class Cloudburst
     )
 
   loadInstance: (layerID, instanceID, cb) ->
-    ajax([@layersURI, layerID, instanceID].join('/'), 'GET').done((instance) ->
+    ajax([@layersURI, layerID, 'instance', instanceID].join('/'), 'GET').done((instance) ->
       if cb?
         cb(instance)
       cb
     )
 
   loadTimes: (layerID, instanceID, cb) ->
-    ajax([@layersURI, layerID, instanceID, 'times'].join('/'), 'GET').done((times) ->
+    ajax([@layersURI, layerID, 'instance', instanceID, 'times'].join('/'), 'GET').done((times) ->
       if cb?
         cb(times)
       cb
     )
 
   loadLevels: (layerID, instanceID, cb) ->
-    ajax([@layersURI, layerID, instanceID, 'levels'].join('/'), 'GET').done((levels) ->
+    ajax([@layersURI, layerID, 'instance', instanceID, 'levels'].join('/'), 'GET').done((levels) ->
       if cb?
         cb(levels)
       cb
