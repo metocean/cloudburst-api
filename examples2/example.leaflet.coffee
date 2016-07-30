@@ -131,9 +131,10 @@ create_layer_table = (map, layers, table_id) ->
   # Clear table
   document.getElementById(table_id).innerHTML = null
   for l, rowi in layers.reverse()
+    console.log l
     lyr = l[0] # L.cloudburstTileLayer
     layer = l[1]
-    instance = l[2]
+    instance = l[2].instance
 
     row = document.getElementById(table_id).insertRow(-1)
     rowi = document.getElementById(table_id).rows.length - 1
