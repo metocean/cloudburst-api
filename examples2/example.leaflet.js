@@ -191,7 +191,6 @@
     _ref = layers.reverse();
     for (rowi = _i = 0, _len = _ref.length; _i < _len; rowi = ++_i) {
       l = _ref[rowi];
-      console.log(l);
       lyr = l[0];
       layer = l[1];
       instance = l[2].instance;
