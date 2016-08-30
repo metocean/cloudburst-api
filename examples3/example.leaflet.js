@@ -48,9 +48,12 @@
           }
           // NOTE: example doesn't really use instances, so
           legend = CBCONFIG.host + layers[i].resources.legend
-          .replace('<instance>', layers[i].instances[0].id)
-          .replace('<size>', 'small')
-          .replace('<orientation>', 'horizontal');
+          if (legend !== undefined) {
+            legend = legend
+            .replace('<instance>', layers[i].instances[0].id)
+            .replace('<size>', 'small')
+            .replace('<orientation>', 'horizontal');
+          }
           self.layers.push({
             layerID: ko.observable(layers[i].id),
             bounds: ko.observable(layers[i].bounds),

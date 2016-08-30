@@ -5,9 +5,13 @@
 # "host": 'http://localhost'
 # "host": "http://tilecache03.wxtiles.com"
 # "host": "https://api.wxtiles.com"
+# CBCONFIG = {
+#   "host": 'https://api.wxtiles.com/v0',
+#   "layers": 'https://api.wxtiles.com/v0/wxtiles/layer'
+# };
 CBCONFIG = {
-  "host": 'https://api.wxtiles.com',
-  "layers": 'https://api.wxtiles.com/wxtiles/layer'
+  "host": 'http://172.16.1.13/v0'
+  "layers": 'http://172.16.1.13/v0/wxtiles/layer'
 };
 
 ajax = (uri, method, data) ->

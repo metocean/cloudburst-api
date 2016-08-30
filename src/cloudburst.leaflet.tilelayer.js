@@ -2,8 +2,8 @@ var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i 
 
 L.CloudburstTileLayer = L.TileLayer.extend({
   initialize: function(urlTemplate, times, levels, bounds, options) {
-    this._times = times != null ? times : null;
-    this._levels = levels != null ? levels : null;
+    this._times = (times != null) && times.length ? times : null;
+    this._levels = (levels != null) && levels.length > 0 ? levels : null;
     this.hasTimes = this._times ? true : false;
     this.hasLevels = this._levels ? true : false;
     this.setTime(this._times != null ? this._times[0] : 0);

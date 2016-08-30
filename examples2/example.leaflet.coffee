@@ -144,7 +144,7 @@ create_layer_table = (map, layers, table_id) ->
     $(layer_utils).addClass 'col-md-1'
 
     layer_name = row.insertCell(1)
-    layer_name.innerHTML = "<strong>#{layer.meta.name}</strong><br>#{instance.id}"
+    layer_name.innerHTML = "<strong>#{layer.meta.name}</strong><br>#{instance.instance.id}"
     $(layer_name).addClass 'col-md-3'
 
     opacity_slider = row.insertCell(2)
@@ -175,7 +175,7 @@ create_layer_table = (map, layers, table_id) ->
       depth.innerHTML = "<span>No depth</span>"
 
     legend = row.insertCell(5)
-    legendURL = layer.resources.legend.replace('<instance>', instance.id)
+    legendURL = layer.resources.legend.replace('<instance>', instance.instance.id)
     .replace('<size>', 'small')
     .replace('<orientation>', 'horizontal')
     legend.innerHTML = "<img src=\"#{CBCONFIG.host}#{legendURL}\" alt='' onerror=\"this.style.display='none'\"/>"

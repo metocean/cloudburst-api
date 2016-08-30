@@ -201,7 +201,7 @@ create_layer_table = function(map, layers, table_id) {
     layer_utils.innerHTML = remove_button + zoom_to_layer_button;
     $(layer_utils).addClass('col-md-1');
     layer_name = row.insertCell(1);
-    layer_name.innerHTML = "<strong>" + layer.meta.name + "</strong><br>" + instance.id;
+    layer_name.innerHTML = "<strong>" + layer.meta.name + "</strong><br>" + instance.instance.id;
     $(layer_name).addClass('col-md-3');
     opacity_slider = row.insertCell(2);
     opacity_slider.innerHTML = get_opacity_slider("opacity-slider-" + rowi);
@@ -234,7 +234,7 @@ create_layer_table = function(map, layers, table_id) {
       depth.innerHTML = "<span>No depth</span>";
     }
     legend = row.insertCell(5);
-    legendURL = layer.resources.legend.replace('<instance>', instance.id).replace('<size>', 'small').replace('<orientation>', 'horizontal');
+    legendURL = layer.resources.legend.replace('<instance>', instance.instance.id).replace('<size>', 'small').replace('<orientation>', 'horizontal');
     legend.innerHTML = "<img src=\"" + CBCONFIG.host + legendURL + "\" alt='' onerror=\"this.style.display='none'\"/>";
     $(legend).addClass('col-md-3');
   }

@@ -2,8 +2,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
 
 
   initialize: (urlTemplate, times, levels, bounds, options) ->
-    @_times = if times? then times else null
-    @_levels = if levels? then levels else null
+    @_times = if times? and times.length then times else null
+    @_levels = if levels? and levels.length > 0 then levels else null
 
     @hasTimes = if @_times then true else false
     @hasLevels = if @_levels then true else false
