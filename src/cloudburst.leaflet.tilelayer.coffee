@@ -14,8 +14,8 @@ L.CloudburstTileLayer = L.TileLayer.extend
     @bounds = if bounds? then bounds else null
     if !options?
       options = {
-        minZoom: 0
-        maxZoom: 21
+        minNativeZoom: 2
+        maxNativeZoom: 11
         tms: yes
         zoomOffset: 0
         detectRetina: true

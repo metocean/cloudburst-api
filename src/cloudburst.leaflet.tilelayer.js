@@ -11,8 +11,8 @@ L.CloudburstTileLayer = L.TileLayer.extend({
     this.bounds = bounds != null ? bounds : null;
     if (options == null) {
       options = {
-        minZoom: 0,
-        maxZoom: 21,
+        minNativeZoom: 2,
+        maxNativeZoom: 11,
         tms: true,
         zoomOffset: 0,
         detectRetina: true

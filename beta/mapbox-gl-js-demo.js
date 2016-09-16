@@ -1,4 +1,5 @@
-tileHost = "http://localhost:6060";
+// tileHost = "http://localhost:6060";
+tileHost = "http://172.16.1.12:8080/v0"; // no cache
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWV0b2NlYW4iLCJhIjoia1hXZjVfSSJ9.rQPq6XLE0VhVPtcD9Cfw6A';
 // var map = new mapboxgl.Map({
@@ -16,20 +17,46 @@ function main(layers) {
   // Just for this demo look for the MSLP vector tile; no choice
   for (i = 0, len = layers.length; i < len; i++) {
     lyr = layers[i];
-    if (lyr.instances[0].resources.vtile !== undefined) {
+    if (lyr.resources.vtile !== undefined) {
       break;
     }
   }
 
-  url = tileHost + lyr.instances[0].resources.vtile;
+  url = tileHost + lyr.resources.vtile;
   cloudburst.loadTimes(lyr.id, lyr.instances[0].id, function(times) {
     // Take a random available time
-    // time = times[Math.floor(Math.random()*times.length)];
-    url = url.replace('<time>', 0); //times.indexOf(time));
-    console.log(url);
+    time = times[Math.floor(Math.random()*times.length)];
+    url = url.replace('<time>', time);
+    url = url.replace('<instance>', lyr.instances[0].id)
+    // console.log(url);
+
+    hs = {
+      "property": "foo",
+      "stops": [
+        [0, '#151d44'],
+        [0.1, '#1b3a54'],
+        [0.2, '#1b5666'],
+        [0.3, '#137275'],
+        [0.4, '#1f8e7e'],
+        [0.5, '#58a585'],
+        [0.6, '#90ba98'],
+        [0.7, '#c0cfb7'],
+        [0.8, '#ebe8df'],
+        [0.9, '#f5e4dc'],
+        [1, '#e8bfab'],
+        [2, '#df9982'],
+        [3, '#d27468'],
+        [4, '#be5260'],
+        [5, '#a23560'],
+        [6, '#811e5f'],
+        [7, '#5b1452'],
+        [8, '#340d35']
+      ]
+    };
 
     sample = {
       "version": 8,
+      "name": "demo",
       "sources": {
         "osm": {
           "type": "vector",
@@ -37,7 +64,8 @@ function main(layers) {
         },
         "msl": {
           "type": "vector",
-          "tiles": [url]
+          "tiles": [url],
+          "scheme": "tms"
         }
       },
       "layers": [
@@ -57,52 +85,42 @@ function main(layers) {
             "fill-color": "#3887be"
           }
         }, {
-          "id": "contours",
-          "type": "line",
+          "id": "facets",
           "source": "msl",
-          "source-layer": "contours",
-          "filter": ["==", "$type", "LineString"],
-          "interactive": true,
-          "layout": {
-            "line-join": "round",
-            "line-cap": "round"
-          },
+          "source-layer": "foo_0",
+          "type": "fill",
+          // "filter": ["==", "$type", "Polygon"],
+          // "interactive": true,
           "paint": {
-            "line-color": "#000000",
-            "line-width": 1
+            "fill-color": hs,
+            "fill-opacity": 0.75,
+            // "fill-outline-color": "#ffffff"
           }
         }, {
-          "id": "contours-labels",
-          "type": "symbol",
+          "id": "facet-hover",
+          "source-layer": "foo_0",
+          "type": "fill",
           "source": "msl",
-          "source-layer": "contours-label",
-          "layout": {
-            "symbol-placement": "line",
-            "text-field": "{level}",
-            "text-size": 10,
-            "text-anchor": "bottom",
-            "text-padding": 5,
-            "text-rotation-alignment": "viewport"
-          },
+          "layout": {},
           "paint": {
-            "text-color": "red",
-            "text-halo-color": "white",
-            "text-halo-width": 2
-            // "text-halo-blur": 3
+              "fill-color": hs,
+              "fill-opacity": 1,
+              "fill-outline-color": "#000000"
+            },
+          "filter": ["==", "foo", ""]
           }
-        }, {
-          "id": "contours-hover",
-          "type": "line",
-          "source": "msl",
-          "source-layer": "contours-hover",
-          "paint": {
-            "line-color": "rgba(255,25,0,0.5)",
-            "line-width": 4
-          },
-          "filter": ['all',
-            [ '==', 'level', ''] // Start with a filter that doesn't select anything
-          ]
-        }
+        // {
+        //   "id": "facet-hover",
+        //   "type": "polygon",
+        //   "source": "fill",
+        //   "source-layer": "facet-hover",
+        //   "paint": {
+        //     "fill-color": "rgba(255,25,0,0.5)",
+        //   },
+        //   "filter": ['all',
+        //     [ '==', 'foo', ''] // Start with a filter that doesn't select anything
+        //   ]
+        // }
       ]
     }
     var map = new mapboxgl.Map({
@@ -111,24 +129,22 @@ function main(layers) {
       zoom: 1,
       center: [-14, 35]
     });
-    map.on('mousemove', function (e) {
-      // query the map for the feature under the mouse
-      map.featuresAt(e.point, {
-        radius: 20,
-        layer: ['contours'],
+    map.on("mousemove", function(e) {
+      var features = map.queryRenderedFeatures(e.point, {
+        layers: ["facets"],
+        // radius: 2,
         includeGeometry: true
-      }, function (err, features) {
-        if (!err && features.length) {
-          // set the filter on the hover style layer to only select the features
-          // currently under the mouse
-          var ids = features.map(function (feat) {return feat.properties.level })
-          map.setFilter('contours-hover', ['all',
-              [ 'in', 'level' ].concat(ids)
-          ])
-        } else {
-          map.setFilter('contours-hover', ['==', 'level', '']);
-        }
       });
+      if (features.length) {
+        map.setFilter("facet-hover", [">=", "foo", features[0].properties.foo]);
+      } else {
+        map.setFilter("facet-hover", ["==", "foo", ""]);
+      }
+
+    });
+    // Reset the route-hover layer's filter when the mouse leaves the map
+    map.on("mouseout", function() {
+        map.setFilter("facet-hover", ["==", "foo", ""]);
     });
   });
 };
