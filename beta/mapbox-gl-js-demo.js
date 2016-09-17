@@ -146,6 +146,19 @@ function main(layers) {
     map.on("mouseout", function() {
         map.setFilter("facet-hover", ["==", "foo", ""]);
     });
+    // When a click event occurs near a polygon, open a popup at the location of
+    // the feature, with description HTML from its properties.
+    map.on('click', function (e) {
+      var features = map.queryRenderedFeatures(e.point, { layers: ['facet-hover'] });
+      if (!features.length) {
+        return;
+      }
+      var feature = features[0];
+      var popup = new mapboxgl.Popup()
+        .setLngLat(map.unproject(e.point))
+        .setHTML(feature.properties.foo)
+        .addTo(map);
+    });
   });
 };
 
