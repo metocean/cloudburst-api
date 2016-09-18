@@ -54,6 +54,22 @@ function main(layers) {
       ]
     };
 
+    infrared = {
+      "property": "foo",
+      "stops": [
+        [170, '#f8f8f1'],
+        [188, '#ffff60'],
+        [206, '#b6379f'],
+        [224, '#444444'],
+        [242, '#ff1d00'],
+        [260, '#83ff00'],
+        [278, '#00325d'],
+        [296, '#009fca'],
+        [314, '#7c7c7c'],
+        [332, '#060606']
+      ]
+    };
+
     sample = {
       "version": 8,
       "name": "demo",
@@ -92,7 +108,7 @@ function main(layers) {
           // "filter": ["==", "$type", "Polygon"],
           // "interactive": true,
           "paint": {
-            "fill-color": hs,
+            "fill-color": infrared,
             "fill-opacity": 0.75,
             // "fill-outline-color": "#ffffff"
           }
@@ -103,7 +119,7 @@ function main(layers) {
           "source": "msl",
           "layout": {},
           "paint": {
-              "fill-color": hs,
+              "fill-color": infrared,
               "fill-opacity": 1,
               "fill-outline-color": "#000000"
             },
