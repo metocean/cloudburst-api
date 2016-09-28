@@ -9,10 +9,14 @@
 #   "host": 'https://api.wxtiles.com/v0',
 #   "layers": 'https://api.wxtiles.com/v0/wxtiles/layer'
 # };
+# CBCONFIG = {
+#   "host": 'http://172.16.1.15/v0',
+#   "layers": 'http://172.16.1.15/v0/wxtiles/layer'
+# };
 CBCONFIG = {
-  "host": 'http://172.16.1.13/v0'
-  "layers": 'http://172.16.1.13/v0/wxtiles/layer'
-};
+  "host": 'http://172.16.1.13:8080/v0',
+  "layers": 'http://172.16.1.15/v0/wxtiles/layer'
+}
 
 ajax = (uri, method, data) ->
   if !uri.endsWith('/')
@@ -34,7 +38,7 @@ ajax = (uri, method, data) ->
 
 class Cloudburst
   constructor: ->
-    @layersURI = "#{CBCONFIG.host}/wxtiles/layer"
+    @layersURI = "#{CBCONFIG.layers}"
 
   loadConfiguration: (cb) ->
     # TODO tags filter?

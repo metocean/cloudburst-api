@@ -1,8 +1,8 @@
 var CBCONFIG, Cloudburst, ajax;
 
 CBCONFIG = {
-  "host": 'http://172.16.1.13/v0',
-  "layers": 'http://172.16.1.13/v0/wxtiles/layer'
+  "host": 'http://172.16.1.13:8080/v0',
+  "layers": 'http://172.16.1.15/v0/wxtiles/layer'
 };
 
 ajax = function(uri, method, data) {
@@ -28,7 +28,7 @@ ajax = function(uri, method, data) {
 
 Cloudburst = (function() {
   function Cloudburst() {
-    this.layersURI = CBCONFIG.host + "/wxtiles/layer";
+    this.layersURI = "" + CBCONFIG.layers;
   }
 
   Cloudburst.prototype.loadConfiguration = function(cb) {

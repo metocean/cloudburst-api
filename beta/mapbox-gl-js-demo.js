@@ -1,5 +1,6 @@
-// tileHost = "http://localhost:6060";
-tileHost = "http://172.16.1.12:8080/v0"; // no cache
+tileHost = "http://172.16.1.13:8080/v0"; // no cache
+// tileHost = "http://172.16.1.15/v0"; // via cache
+
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWV0b2NlYW4iLCJhIjoia1hXZjVfSSJ9.rQPq6XLE0VhVPtcD9Cfw6A';
 // var map = new mapboxgl.Map({
@@ -28,10 +29,9 @@ function main(layers) {
     time = times[Math.floor(Math.random()*times.length)];
     url = url.replace('<time>', time);
     url = url.replace('<instance>', lyr.instances[0].id)
-    // console.log(url);
 
     hs = {
-      "property": "foo",
+      "property": "hs",
       "stops": [
         [0, '#151d44'],
         [0.1, '#1b3a54'],
@@ -55,7 +55,7 @@ function main(layers) {
     };
 
     infrared = {
-      "property": "foo",
+      "property": "ir", // variable in dataset
       "stops": [
         [170, '#f8f8f1'],
         [188, '#ffff60'],
@@ -74,68 +74,61 @@ function main(layers) {
       "version": 8,
       "name": "demo",
       "sources": {
-        "osm": {
-          "type": "vector",
-          "tiles": ["https://vector.mapzen.com/osm/all/{z}/{x}/{y}.mvt?api_key=vector-tiles-LM25tq4"]
-        },
         "msl": {
           "type": "vector",
           "tiles": [url],
           "scheme": "tms"
+        },
+        "osm": {
+          "type": "vector",
+          "tiles": ["https://vector.mapzen.com/osm/all/{z}/{x}/{y}.mvt?api_key=vector-tiles-LM25tq4"]
         }
       },
       "layers": [
+
         {
           "id": "background",
           "type": "background",
           "paint": {
-            "background-color": "#41afa5"
+            "background-color": "#ffffff",
+            // "background-opacity": 0.5
           }
-        }, {
+        },
+        {
+          "id": "facets",
+          "source": "msl",
+          "source-layer": "ir", //plot_id
+          "type": "fill",
+          // "filter": ["==", "$type", "Polygon"],
+          // "interactive": true,
+          "paint": {
+            "fill-color": infrared,
+            "fill-opacity": 0.75          }
+        },
+        {
           "id": "water",
           "type": "fill",
           "source": "osm",
           "source-layer": "water",
           "filter": ["==", "$type", "Polygon"],
           "paint": {
-            "fill-color": "#3887be"
+            "fill-color": "#ffffff",
+            "fill-opacity": 0.2,
+            "fill-outline-color": "#000000"
           }
-        }, {
-          "id": "facets",
-          "source": "msl",
-          "source-layer": "foo_0",
-          "type": "fill",
-          // "filter": ["==", "$type", "Polygon"],
-          // "interactive": true,
-          "paint": {
-            "fill-color": infrared,
-            "fill-opacity": 0.75,
-            // "fill-outline-color": "#ffffff"
-          }
-        }, {
-          "id": "facet-hover",
-          "source-layer": "foo_0",
-          "type": "fill",
-          "source": "msl",
-          "layout": {},
-          "paint": {
-              "fill-color": infrared,
-              "fill-opacity": 1,
-              "fill-outline-color": "#000000"
-            },
-          "filter": ["==", "foo", ""]
-          }
+        }
         // {
         //   "id": "facet-hover",
-        //   "type": "polygon",
-        //   "source": "fill",
-        //   "source-layer": "facet-hover",
+        //   "source-layer": "ir", // plot_id
+        //   "type": "fill",
+        //   "source": "msl",
+        //   "layout": {},
         //   "paint": {
-        //     "fill-color": "rgba(255,25,0,0.5)",
-        //   },
-        //   "filter": ['all',
-        //     [ '==', 'foo', ''] // Start with a filter that doesn't select anything
-        //   ]
+        //       "fill-color": infrared,
+        //       "fill-opacity": 1,
+        //       "fill-outline-color": "#000000"
+        //     },
+        //   "filter": ["==", "ir", ""]
         // }
       ]
     }
@@ -145,34 +138,34 @@ function main(layers) {
       zoom: 1,
       center: [-14, 35]
     });
-    map.on("mousemove", function(e) {
-      var features = map.queryRenderedFeatures(e.point, {
-        layers: ["facets"],
-        // radius: 2,
-        includeGeometry: true
-      });
-      if (features.length) {
-        map.setFilter("facet-hover", [">=", "foo", features[0].properties.foo]);
-      } else {
-        map.setFilter("facet-hover", ["==", "foo", ""]);
-      }
-
-    });
+    // map.on("mousemove", function(e) {
+    //   var features = map.queryRenderedFeatures(e.point, {
+    //     layers: ["facets"],
+    //     // radius: 2,
+    //     includeGeometry: true
+    //   });
+    //   if (features.length) {
+    //     map.setFilter("facet-hover", [">=", "ir", features[0].properties.ir]);
+    //   } else {
+    //     map.setFilter("facet-hover", ["==", "ir", ""]);
+    //   }
+    //
+    // });
     // Reset the route-hover layer's filter when the mouse leaves the map
     map.on("mouseout", function() {
-        map.setFilter("facet-hover", ["==", "foo", ""]);
+        map.setFilter("facet-hover", ["==", "ir", ""]);
     });
     // When a click event occurs near a polygon, open a popup at the location of
     // the feature, with description HTML from its properties.
     map.on('click', function (e) {
-      var features = map.queryRenderedFeatures(e.point, { layers: ['facet-hover'] });
+      var features = map.queryRenderedFeatures(e.point, { layers: ['facets'] });
       if (!features.length) {
         return;
       }
       var feature = features[0];
       var popup = new mapboxgl.Popup()
         .setLngLat(map.unproject(e.point))
-        .setHTML(feature.properties.foo)
+        .setHTML(JSON.stringify(feature.properties))
         .addTo(map);
     });
   });
